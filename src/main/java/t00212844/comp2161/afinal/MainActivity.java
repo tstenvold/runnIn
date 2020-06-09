@@ -197,9 +197,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     @Override
     public void onLocationChanged(Location location) {
-        LatLng ln = new LatLng(location.getLatitude(), location.getLongitude());
-        TextView loc = findViewById(R.id.textView_Latln);
-        loc.setText(ln.toString());
         gpsTrack.add(location);
         mapboxMap.getLocationComponent().forceLocationUpdate(location);
     }

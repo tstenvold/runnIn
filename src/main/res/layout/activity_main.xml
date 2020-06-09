@@ -7,99 +7,176 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <View
+        android:id="@+id/divider8"
+        android:layout_width="409dp"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/divider7" />
+
+    <View
+        android:id="@+id/divider4"
+        android:layout_width="409dp"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView_Time" />
+
+    <View
+        android:id="@+id/divider2"
+        android:layout_width="409dp"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/divider6" />
+
     <Chronometer
         android:id="@+id/textView_Time"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_margin="4dp"
         android:layout_weight="1"
         android:textAlignment="center"
-        android:textSize="54sp"
+        android:textSize="72sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
-        android:id="@+id/linearLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView_Time">
-
-        <TextView
-            android:id="@+id/textView_Distance"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/distance"
-            android:textAlignment="center"
-            android:textSize="30sp" />
-
-        <TextView
-            android:id="@+id/textView_Pace"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:layout_weight="1"
-            android:text="@string/pace"
-            android:textAlignment="center"
-            android:textSize="30sp" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/textView_Latln"
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/button_record"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:layout_weight="1"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="32dp"
+        android:baselineAlignBottom="true"
+        android:clickable="true"
+        android:focusable="true"
+        android:longClickable="true"
+        android:onClick="startRecording"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toBottomOf="@+id/location_frag_cardview"
+        app:layout_constraintEnd_toEndOf="@+id/location_frag_cardview"
+        app:srcCompat="@android:drawable/ic_media_play" />
 
-    <LinearLayout
-        android:id="@+id/linearLayout2"
+    <TextView
+        android:id="@+id/textView_paceText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="0"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:text="@string/pace"
+        app:layout_constraintStart_toEndOf="@+id/divider6"
+        app:layout_constraintTop_toTopOf="@+id/textView_disText" />
+
+    <TextView
+        android:id="@+id/textView_Distance"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_margin="8dp"
+        android:layout_weight=".5"
+        android:textAlignment="viewStart"
+        android:textSize="30sp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView_disText"
+        app:layout_constraintEnd_toStartOf="@+id/divider6"
+        app:layout_constraintStart_toEndOf="@+id/textView_disText"
+        app:layout_constraintTop_toTopOf="@+id/textView_disText" />
+
+    <TextView
+        android:id="@+id/textView_Pace"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:layout_weight="1"
+        android:text="@string/paceDefault"
+        android:textAlignment="center"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView_paceText"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/textView_paceText"
+        app:layout_constraintTop_toTopOf="@+id/textView_paceText" />
+
+    <TextView
+        android:id="@+id/textView_disText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="0"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:text="@string/distance"
+        app:layout_constraintBottom_toBottomOf="@+id/divider6"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout">
+        app:layout_constraintTop_toBottomOf="@+id/textView_Time" />
 
-        <TextView
-            android:id="@+id/textView_Elevation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/elevation"
-            android:textAlignment="center"
-            android:textSize="30sp" />
+    <TextView
+        android:id="@+id/textView_elText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="0"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:text="@string/elevation"
+        app:layout_constraintBottom_toBottomOf="@+id/divider7"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/divider6" />
 
-        <TextView
-            android:id="@+id/textView_location"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:layout_weight="1"
-            android:text="@string/location"
-            android:textAlignment="center"
-            android:textSize="30sp" />
-    </LinearLayout>
+    <TextView
+        android:id="@+id/textView_tbdText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="0"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:text="@string/elevation"
+        app:layout_constraintBottom_toBottomOf="@+id/textView_elText"
+        app:layout_constraintStart_toStartOf="@+id/divider7"
+        app:layout_constraintTop_toTopOf="@+id/textView_elText" />
+
+    <TextView
+        android:id="@+id/textView_Elevation"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:layout_weight=".5"
+        android:textAlignment="viewStart"
+        android:textSize="30sp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView_elText"
+        app:layout_constraintEnd_toStartOf="@+id/divider7"
+        app:layout_constraintStart_toEndOf="@+id/textView_elText"
+        app:layout_constraintTop_toTopOf="@+id/textView_elText" />
+
+    <TextView
+        android:id="@+id/textView_location"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:layout_weight="1"
+        android:text="@string/location"
+        android:textAlignment="center"
+        android:textSize="30sp"
+        app:layout_constraintBottom_toBottomOf="@+id/textView_tbdText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/textView_tbdText"
+        app:layout_constraintTop_toTopOf="@+id/textView_tbdText" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/location_frag_cardview"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_centerInParent="true"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="32dp"
+        android:layout_margin="16dp"
         app:cardCornerRadius="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/coordinatorLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView_Latln">
+        app:layout_constraintTop_toBottomOf="@+id/divider7">
 
         <FrameLayout
             android:id="@+id/location_frag_container"
@@ -107,37 +184,22 @@
             android:layout_height="match_parent" />
     </androidx.cardview.widget.CardView>
 
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:id="@+id/coordinatorLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <View
+        android:id="@+id/divider6"
+        android:layout_width="1dp"
+        android:layout_height="72dp"
+        android:background="?android:attr/listDivider"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView_Time" />
 
-        <com.google.android.material.bottomappbar.BottomAppBar
-            android:id="@+id/bottomAppBar"
-            style="@style/Widget.MaterialComponents.BottomAppBar.Colored"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:fabAlignmentMode="end"
-            app:fabCradleMargin="6dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/button_record"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:baselineAlignBottom="true"
-            android:clickable="true"
-            android:focusable="true"
-            android:longClickable="true"
-            android:onClick="startRecording"
-            android:textAlignment="center"
-            app:layout_anchor="@id/bottomAppBar"
-            app:srcCompat="@android:drawable/ic_media_play" />
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <View
+        android:id="@+id/divider7"
+        android:layout_width="1dp"
+        android:layout_height="72dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/divider6" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -16,4 +16,5 @@
     <string name="access_token">pk.eyJ1IjoidHN0ZW52b2xkIiwiYSI6ImNrYjZxZW1zbjAxNjAycm9iNjZ2MnhneTkifQ.Pm56qnLeN1A5jnl6a61X5g</string>
     <string name="logo">runnIN Logo</string>
     <string name="slogan">Elevate Aspirations!</string>
+    <string name="paceDefault">0:00 min/km</string>
 </resources>
