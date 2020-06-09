@@ -10,6 +10,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.SystemClock;
+import android.util.Log;
 import android.view.View;
 import android.widget.Chronometer;
 import android.widget.TextView;
@@ -37,6 +38,8 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.maps.SupportMapFragment;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -67,13 +70,25 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         isRunning = false;
         gpsTrack = new ArrayList<>();
 
+        final File file = new File(getBaseContext().getFilesDir(), SystemClock.elapsedRealtime() + ".json");
+        try {
+            file.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        final GeoJsonHandler gg = new GeoJsonHandler();
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
         play.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 Toast.makeText(getApplicationContext(), "Saving Run", Toast.LENGTH_SHORT).show();
-                //TODO finish activity save to Json
+                try {
+                    gg.writeJson(file, gpsTrack);
+                    Log.d("ReadJson", gg.readJson(file).toString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 return false;
             }
         });
