@@ -57,8 +57,8 @@
         android:longClickable="true"
         android:onClick="startRecording"
         android:textAlignment="center"
-        app:layout_constraintBottom_toBottomOf="@+id/location_frag_cardview"
-        app:layout_constraintEnd_toEndOf="@+id/location_frag_cardview"
+        app:layout_constraintBottom_toBottomOf="@+id/row_frag_cardview"
+        app:layout_constraintEnd_toEndOf="@+id/row_frag_cardview"
         app:srcCompat="@android:drawable/ic_media_play" />
 
     <TextView
@@ -167,7 +167,7 @@
         app:layout_constraintTop_toTopOf="@+id/textView_tbdText" />
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/location_frag_cardview"
+        android:id="@+id/row_frag_cardview"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_centerInParent="true"
@@ -179,7 +179,7 @@
         app:layout_constraintTop_toBottomOf="@+id/divider7">
 
         <FrameLayout
-            android:id="@+id/location_frag_container"
+            android:id="@+id/row_frag_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </androidx.cardview.widget.CardView>

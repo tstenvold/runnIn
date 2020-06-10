@@ -10,7 +10,6 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.View;
 import android.widget.Chronometer;
 import android.widget.TextView;
@@ -70,22 +69,18 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         isRunning = false;
         gpsTrack = new ArrayList<>();
 
-        final File file = new File(getBaseContext().getFilesDir(), SystemClock.elapsedRealtime() + ".json");
-        try {
-            file.createNewFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         final GeoJsonHandler gg = new GeoJsonHandler();
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
         play.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
+                //TODO launch new Activity with everything loaded (IE the edit activity)
                 Toast.makeText(getApplicationContext(), "Saving Run", Toast.LENGTH_SHORT).show();
                 try {
-                    gg.writeJson(file, gpsTrack);
-                    Log.d("ReadJson", gg.readJson(file).toString());
+                    final File file = new File(getBaseContext().getFilesDir(), SystemClock.elapsedRealtime() + ".json");
+                    file.createNewFile();
+                    GeoJsonHandler.writeJson(file, gpsTrack);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -105,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
             mapFragment = SupportMapFragment.newInstance(options);
 
-            transaction.add(R.id.location_frag_container, mapFragment, "com.mapbox.map");
+            transaction.add(R.id.row_frag_container, mapFragment, "com.mapbox.map");
             transaction.commit();
 
         } else {
@@ -236,11 +231,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
             public void onTick(long millisUntilFinished) {
                 NumberFormat format;
-                double distance = calculateDistance();
+                double distance = AnalyzeActivity.calculateDistance(gpsTrack);
                 String distanceText = "";
 
                 if (distance < 1000) {
-
                     format = new DecimalFormat("##0");
                     distanceText = format.format(distance) + " " + getString(R.string.meters);
                     tvDistance.setText(distanceText);
@@ -248,19 +242,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     format = new DecimalFormat("0.00");
                     distanceText = format.format(distance / 1000) + " " + getString(R.string.kilometers);
                     tvDistance.setText(distanceText);
-
-                    format = new DecimalFormat("00");
-                    double duration = (double) SystemClock.elapsedRealtime() - chronometer.getBase();
-                    double pace = (duration / 60000) / (distance / 1000);
-                    int min = (int) pace;
-                    int sec = (int) ((pace - min) * 60);
-                    TextView tvPace = findViewById(R.id.textView_Pace);
-                    tvPace.setText(format.format(min) + ":" + format.format(sec) + " min/km");
-
                 }
 
+                format = new DecimalFormat("00");
+                double pace = AnalyzeActivity.getOverallPace(gpsTrack, chronometer.getBase());
+                int min = (int) pace;
+                int sec = (int) ((pace - min) * 60);
+                TextView tvPace = findViewById(R.id.textView_Pace);
+                tvPace.setText(format.format(min) + ":" + format.format(sec) + " min/km");
+
                 TextView tvElevation = findViewById(R.id.textView_Elevation);
-                String elText = getLastElevation() + " m";
+                String elText = AnalyzeActivity.getElevationGain(gpsTrack) + " m";
                 tvElevation.setText(elText);
             }
 
@@ -269,30 +261,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 runBackgroundCalculations(30000);
             }
         }.start();
-    }
-
-    private int getLastElevation() {
-        int el = 0;
-        if (gpsTrack.size() > 1) {
-            Location loc = gpsTrack.get(gpsTrack.size() - 1);
-            el = (int) loc.getAltitude();
-        }
-        return el;
-    }
-
-    private double calculateDistance() {
-        double distance = 0;
-        int index = 0;
-        Location cur;
-        if (gpsTrack.size() > 1) {
-            cur = gpsTrack.get(index++);
-            while (index < gpsTrack.size() - 1) {
-                float dis = cur.distanceTo(gpsTrack.get(index));
-                cur = gpsTrack.get(index++);
-                distance += dis;
-            }
-        }
-        return distance;
     }
 
     @Override

@@ -6,6 +6,8 @@ import android.util.JsonReader;
 import android.util.JsonWriter;
 import android.util.Log;
 
+import com.mapbox.geojson.Point;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -16,6 +18,7 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class GeoJsonHandler {
 
@@ -28,13 +31,20 @@ public class GeoJsonHandler {
         };
 
         File[] ls = context.getFilesDir().listFiles(ff);
-        ArrayList<File> files = new ArrayList<>(Arrays.asList(ls));
-
-        return files;
+        return new ArrayList<>(Arrays.asList(ls));
 
     }
 
-    public void writeJson(File file, ArrayList<Location> gpsTrack) throws IOException {
+    public static List<Point> getFilePoints(File file) throws IOException {
+        ArrayList<Location> gps = readJson(file);
+        List<Point> points = new ArrayList<>();
+        for (Location loc : gps) {
+            points.add(Point.fromLngLat(loc.getLongitude(), loc.getLatitude()));
+        }
+        return points;
+    }
+
+    public static void writeJson(File file, ArrayList<Location> gpsTrack) throws IOException {
         int num = 0;
         Log.v("File Written to", file.getAbsolutePath());
         FileOutputStream fo = new FileOutputStream(file);
@@ -71,7 +81,7 @@ public class GeoJsonHandler {
         writer.close();
     }
 
-    public ArrayList<Location> readJson(File file) throws IOException {
+    public static ArrayList<Location> readJson(File file) throws IOException {
         FileInputStream fis = new FileInputStream(file);
         JsonReader reader = new JsonReader(new InputStreamReader(fis, StandardCharsets.UTF_16));
         Location loc;
