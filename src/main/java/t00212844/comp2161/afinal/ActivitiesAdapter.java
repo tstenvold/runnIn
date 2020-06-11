@@ -30,7 +30,6 @@ import java.util.List;
 public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.ViewHolder> {
 
     private final ArrayList<File> jsonFiles;
-    private File file;
 
     public ActivitiesAdapter(ArrayList<File> sList) {
         jsonFiles = sList;
@@ -46,11 +45,11 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Context context = holder.itemView.getContext();
-        file = jsonFiles.get(position);
+        File file = jsonFiles.get(position);
 
         holder.activityName.setText(file.getName().substring(0, file.getName().length() - 5));
         holder.time.setText("28:32");
-        holder.distance.setText("5.26km");
+        holder.distance.setText("5.26 km");
 
         File png = new File(context.getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
 
@@ -68,8 +67,8 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
                         .styleId(StaticMapCriteria.STREET_STYLE)
                         .cameraPoint(Point.fromLngLat(points.get(0).longitude(), points.get(0).latitude())) // Image's centerpoint on map
                         .cameraZoom(14)
-                        .width(640) // Image width
-                        .height(640) // Image height
+                        .width(720) // Image width
+                        .height(720) // Image height
                         .geoJson(lineString)
                         .build();
 

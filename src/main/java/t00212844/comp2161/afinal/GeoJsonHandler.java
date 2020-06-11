@@ -4,7 +4,6 @@ import android.content.Context;
 import android.location.Location;
 import android.util.JsonReader;
 import android.util.JsonWriter;
-import android.util.Log;
 
 import com.mapbox.geojson.Point;
 
@@ -46,7 +45,6 @@ public class GeoJsonHandler {
 
     public static void writeJson(File file, ArrayList<Location> gpsTrack) throws IOException {
         int num = 0;
-        Log.v("File Written to", file.getAbsolutePath());
         FileOutputStream fo = new FileOutputStream(file);
         JsonWriter writer = new JsonWriter(new OutputStreamWriter(fo, StandardCharsets.UTF_16));
         writer.setIndent("  ");

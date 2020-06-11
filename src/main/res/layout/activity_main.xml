@@ -5,6 +5,7 @@
     android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:keepScreenOn="true"
     tools:context=".MainActivity">
 
     <View
@@ -166,6 +167,19 @@
         app:layout_constraintStart_toEndOf="@+id/textView_tbdText"
         app:layout_constraintTop_toTopOf="@+id/textView_tbdText" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fab_mylocation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:alpha=".75"
+        app:backgroundTint="@android:color/darker_gray"
+        app:fabSize="mini"
+        app:layout_constraintStart_toStartOf="@+id/row_frag_cardview"
+        app:layout_constraintTop_toTopOf="@+id/row_frag_cardview"
+        app:srcCompat="@android:drawable/ic_menu_mylocation" />
+
     <androidx.cardview.widget.CardView
         android:id="@+id/row_frag_cardview"
         android:layout_width="0dp"
@@ -181,7 +195,9 @@
         <FrameLayout
             android:id="@+id/row_frag_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent">
+
+        </FrameLayout>
     </androidx.cardview.widget.CardView>
 
     <View

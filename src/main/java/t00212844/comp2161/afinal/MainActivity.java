@@ -9,7 +9,9 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.PowerManager;
 import android.os.SystemClock;
+import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.Chronometer;
 import android.widget.TextView;
@@ -24,8 +26,12 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
+import com.mapbox.geojson.Feature;
+import com.mapbox.geojson.LineString;
+import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions;
@@ -36,13 +42,22 @@ import com.mapbox.mapboxsdk.maps.MapboxMapOptions;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.maps.SupportMapFragment;
+import com.mapbox.mapboxsdk.style.layers.LineLayer;
+import com.mapbox.mapboxsdk.style.layers.Property;
+import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineCap;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineJoin;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
 
 public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, LocationListener, PermissionsListener {
 
@@ -50,9 +65,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     public boolean isRunning;
     private Chronometer chronometer;
     private FloatingActionButton play;
+    private FloatingActionButton myLoc;
     private View mLayout;
     private LocationManager locationManager;
     private ArrayList<Location> gpsTrack;
+    private List<Point> mapTrack;
     private TextView tvDistance;
     private CountDownTimer timer;
     private MapboxMap mapboxMap;
@@ -66,11 +83,30 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         chronometer = findViewById(R.id.textView_Time);
         tvDistance = findViewById(R.id.textView_Distance);
         play = findViewById(R.id.button_record);
+        myLoc = findViewById(R.id.fab_mylocation);
         isRunning = false;
         gpsTrack = new ArrayList<>();
-
-        final GeoJsonHandler gg = new GeoJsonHandler();
+        mapTrack = new ArrayList<>();
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        //check power
+        PowerManager powerManager = (PowerManager) getApplicationContext().getSystemService(POWER_SERVICE);
+        String packageName = getPackageName();
+        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+            Toast.makeText(getApplicationContext(), "Please Disable Battery Optimization for this Application", Toast.LENGTH_SHORT).show();
+        }
+
+        myLoc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Move back to previous location
+                Location lastKnownLocation = mapboxMap.getLocationComponent().getLastKnownLocation();
+                if (lastKnownLocation != null) {
+                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude())));
+                }
+
+            }
+        });
 
         play.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
@@ -78,7 +114,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 //TODO launch new Activity with everything loaded (IE the edit activity)
                 Toast.makeText(getApplicationContext(), "Saving Run", Toast.LENGTH_SHORT).show();
                 try {
-                    final File file = new File(getBaseContext().getFilesDir(), SystemClock.elapsedRealtime() + ".json");
+                    final File file = new File(getBaseContext().getFilesDir(),
+                            DateFormat.format("dd-mm-YYYY", Calendar.getInstance().getTime()).toString()
+                                    + tvDistance.getText().toString()
+                                    + (chronometer.getBase() - SystemClock.elapsedRealtime())
+                                    + ".json");
                     file.createNewFile();
                     GeoJsonHandler.writeJson(file, gpsTrack);
                 } catch (IOException e) {
@@ -96,15 +136,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
             MapboxMapOptions options = MapboxMapOptions.createFromAttributes(this, null);
-            options.camera(new CameraPosition.Builder().target(new LatLng(50.670493, -120.364049)).zoom(15).build());
-
+            options.camera(new CameraPosition.Builder().target(new LatLng(50.670493, -120.364049)).zoom(13).build());
             mapFragment = SupportMapFragment.newInstance(options);
-
-            transaction.add(R.id.row_frag_container, mapFragment, "com.mapbox.map");
+            transaction.add(R.id.row_frag_container, mapFragment, getString(R.string.mapID));
             transaction.commit();
 
         } else {
-            mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentByTag("com.mapbox.map");
+            mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentByTag(getString(R.string.mapID));
         }
 
         if (mapFragment != null) {
@@ -116,12 +154,29 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                         @Override
                         public void onStyleLoaded(@NonNull Style style) {
                             enableLocationComponent(style);
+                            initLayers(style);
+                            LineString lineString = LineString.fromLngLats(mapTrack);
+                            Feature feature = Feature.fromGeometry(lineString);
+                            GeoJsonSource geoJsonSource = new GeoJsonSource(getString(R.string.runGeoJsonId), feature);
+                            style.addSource(geoJsonSource);
                         }
                     });
                 }
             });
         }
 
+    }
+
+    private void initLayers(@NonNull Style loadedMapStyle) {
+        LineLayer routeLayer = new LineLayer(getString(R.string.runGeoJsonLayerId), getString(R.string.runGeoJsonId));
+
+        routeLayer.setProperties(
+                lineCap(Property.LINE_CAP_ROUND),
+                lineJoin(Property.LINE_JOIN_ROUND),
+                lineWidth(8f),
+                lineColor(getColor(R.color.colorAccent))
+        );
+        loadedMapStyle.addLayer(routeLayer);
     }
 
     @SuppressWarnings({"MissingPermission"})
@@ -147,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         criteria.setPowerRequirement(Criteria.POWER_HIGH);
         String provider = locationManager.getBestProvider(criteria, true);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationManager.requestLocationUpdates(provider, 5000, 5, this);
+            locationManager.requestLocationUpdates(provider, 5000, 10, this);
         } else {
             requestLocationPermission();
         }
@@ -166,22 +221,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             Snackbar.make(mLayout, R.string.location_unavailable, Snackbar.LENGTH_SHORT).show();
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_FINE_LOCATION);
         }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        // BEGIN_INCLUDE(onRequestPermissionsResult)
-        if (requestCode == PERMISSION_FINE_LOCATION) {
-            // Request for camera permission.
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission has been granted. Start camera preview Activity.
-                Snackbar.make(mLayout, R.string.location_allowed, Snackbar.LENGTH_SHORT).show();
-            } else {
-                // Permission request was denied.
-                Snackbar.make(mLayout, R.string.location_unavailable, Snackbar.LENGTH_SHORT).show();
-            }
-        }
-        // END_INCLUDE(onRequestPermissionsResult)
     }
 
     private void startTimer() {
@@ -208,6 +247,17 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     @Override
     public void onLocationChanged(Location location) {
         gpsTrack.add(location);
+        mapTrack.add(Point.fromLngLat(location.getLongitude(), location.getLatitude()));
+
+        mapboxMap.getStyle(new Style.OnStyleLoaded() {
+            @Override
+            public void onStyleLoaded(@NonNull Style style) {
+                GeoJsonSource source = style.getSourceAs(getString(R.string.runGeoJsonId));
+                if (source != null) {
+                    source.setGeoJson(LineString.fromLngLats(mapTrack));
+                }
+            }
+        });
         mapboxMap.getLocationComponent().forceLocationUpdate(location);
     }
 
@@ -244,12 +294,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     tvDistance.setText(distanceText);
                 }
 
-                format = new DecimalFormat("00");
-                double pace = AnalyzeActivity.getOverallPace(gpsTrack, chronometer.getBase());
-                int min = (int) pace;
-                int sec = (int) ((pace - min) * 60);
-                TextView tvPace = findViewById(R.id.textView_Pace);
-                tvPace.setText(format.format(min) + ":" + format.format(sec) + " min/km");
+                if (distance > 200) {
+                    format = new DecimalFormat("00");
+                    double pace = AnalyzeActivity.getOverallPace(gpsTrack, chronometer.getBase());
+                    int min = (int) pace;
+                    int sec = (int) ((pace - min) * 60);
+                    TextView tvPace = findViewById(R.id.textView_Pace);
+                    tvPace.setText(format.format(min) + ":" + format.format(sec) + " min/km");
+                }
 
                 TextView tvElevation = findViewById(R.id.textView_Elevation);
                 String elText = AnalyzeActivity.getElevationGain(gpsTrack) + " m";

@@ -27,4 +27,7 @@
     <string name="invalid_password">Password must be >5 characters</string>
     <string name="login_failed">"Login failed"</string>
     <string name="mapview">MapView Icon</string>
+    <string name="runGeoJsonId">geojson-source</string>
+    <string name="runGeoJsonLayerId">geojson-layer</string>
+    <string name="mapID">mapID</string>
 </resources>

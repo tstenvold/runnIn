@@ -13,5 +13,5 @@
         android:id="@+id/page_3"
         android:enabled="true"
         android:icon="@android:drawable/ic_dialog_info"
-        android:title="Settings" />
+        android:title="Profile" />
 </menu>
