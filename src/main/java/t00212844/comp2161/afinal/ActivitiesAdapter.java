@@ -61,11 +61,13 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
                     points.add(Point.fromLngLat(-120.364049, 50.670493));
                 }
                 LineString lineString = LineString.fromLngLats(points);
+                int midpoint = (points.size() / 2) - 1;
 
                 MapboxStaticMap staticImage = MapboxStaticMap.builder()
                         .accessToken(context.getString(R.string.access_token))
                         .styleId(StaticMapCriteria.STREET_STYLE)
-                        .cameraPoint(Point.fromLngLat(points.get(0).longitude(), points.get(0).latitude())) // Image's centerpoint on map
+                        //Loads the map center on the middle point of run. Crude but should be ok
+                        .cameraPoint(Point.fromLngLat(points.get(midpoint).longitude(), points.get(midpoint).latitude()))
                         .cameraZoom(14)
                         .width(720) // Image width
                         .height(720) // Image height
@@ -86,6 +88,7 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
             } else {
                 png.delete();
             }
+            png.delete();
         }
 
     }

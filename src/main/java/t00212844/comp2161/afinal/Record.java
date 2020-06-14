@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.speech.tts.TextToSpeech;
 import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.Chronometer;
@@ -53,15 +54,18 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineCap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineJoin;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
 
-public class MainActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, LocationListener, PermissionsListener {
+public class Record extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, LocationListener, PermissionsListener {
 
     private static final int PERMISSION_FINE_LOCATION = 0;
+    private final int DEFAULT_ZOOM = 14;
+    private final int ANIMATION_SHORT = 3000;
     public boolean isRunning;
     private Chronometer chronometer;
     private FloatingActionButton play;
@@ -74,9 +78,10 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private CountDownTimer timer;
     private MapboxMap mapboxMap;
     private PermissionsManager permissionsManager;
+    private TextToSpeech tts;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mLayout = findViewById(R.id.main_layout);
@@ -88,6 +93,12 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         gpsTrack = new ArrayList<>();
         mapTrack = new ArrayList<>();
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+        tts = new TextToSpeech(getApplicationContext(), status -> {
+            if (status != TextToSpeech.ERROR) {
+                tts.setLanguage(Locale.ENGLISH);
+            }
+        });
 
         //check power
         PowerManager powerManager = (PowerManager) getApplicationContext().getSystemService(POWER_SERVICE);
@@ -102,7 +113,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 //Move back to previous location
                 Location lastKnownLocation = mapboxMap.getLocationComponent().getLastKnownLocation();
                 if (lastKnownLocation != null) {
-                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude())));
+                    CameraPosition position = new CameraPosition.Builder()
+                            .target(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()))
+                            .zoom(DEFAULT_ZOOM)
+                            .bearing(0)
+                            .build();
+
+                    mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), ANIMATION_SHORT);
                 }
 
             }
@@ -136,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
             MapboxMapOptions options = MapboxMapOptions.createFromAttributes(this, null);
-            options.camera(new CameraPosition.Builder().target(new LatLng(50.670493, -120.364049)).zoom(13).build());
+            options.camera(new CameraPosition.Builder().target(new LatLng(50.670493, -120.364049)).zoom(DEFAULT_ZOOM).build());
             mapFragment = SupportMapFragment.newInstance(options);
             transaction.add(R.id.row_frag_container, mapFragment, getString(R.string.mapID));
             transaction.commit();
@@ -149,7 +166,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             mapFragment.getMapAsync(new OnMapReadyCallback() {
                 @Override
                 public void onMapReady(@NonNull MapboxMap mapboxMap) {
-                    MainActivity.this.mapboxMap = mapboxMap;
+                    Record.this.mapboxMap = mapboxMap;
                     mapboxMap.setStyle(Style.OUTDOORS, new Style.OnStyleLoaded() {
                         @Override
                         public void onStyleLoaded(@NonNull Style style) {
@@ -213,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             Snackbar.make(mLayout, R.string.request_location, Snackbar.LENGTH_INDEFINITE).setAction(R.string.ok, new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA}, PERMISSION_FINE_LOCATION);
+                    ActivityCompat.requestPermissions(Record.this, new String[]{Manifest.permission.CAMERA}, PERMISSION_FINE_LOCATION);
                 }
             }).show();
 
@@ -303,6 +320,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                     tvPace.setText(format.format(min) + ":" + format.format(sec) + " min/km");
                 }
 
+                //tts.speak("meters", TextToSpeech.QUEUE_FLUSH, null,"utterance-id");
+
                 TextView tvElevation = findViewById(R.id.textView_Elevation);
                 String elText = AnalyzeActivity.getElevationGain(gpsTrack) + " m";
                 tvElevation.setText(elText);
@@ -322,6 +341,11 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     @Override
     public void onPermissionResult(boolean granted) {
+
+    }
+
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
 
     }
 }

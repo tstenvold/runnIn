@@ -18,7 +18,6 @@ public class Activities extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_activities);
 
         sRView = findViewById(R.id.rv_activities);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);

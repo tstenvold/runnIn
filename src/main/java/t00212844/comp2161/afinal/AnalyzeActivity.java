@@ -38,7 +38,7 @@ public class AnalyzeActivity {
             for (int i = 0; i < gpsTrack.size() - 2; i++) {
                 Location loc1 = gpsTrack.get(i);
                 Location loc2 = gpsTrack.get(i + 1);
-                if (loc2.getAltitude() > loc2.getAltitude()) {
+                if (loc2.getAltitude() > loc1.getAltitude()) {
                     el += loc2.getAltitude() - loc1.getAltitude();
                 }
             }

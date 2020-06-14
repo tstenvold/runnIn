@@ -30,4 +30,5 @@
     <string name="runGeoJsonId">geojson-source</string>
     <string name="runGeoJsonLayerId">geojson-layer</string>
     <string name="mapID">mapID</string>
+    <string name="title_activity_main">MainActivity</string>
 </resources>
