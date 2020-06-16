@@ -30,14 +30,12 @@ public class ActivitiesFragment extends Fragment {
 
     public static Fragment newInstance(String s, String s1) {
         ActivitiesFragment fragment = new ActivitiesFragment();
-
         return fragment;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //RecyclerView activities = Objects.requireNonNull(getActivity()).findViewById(R.id.rv_activities);
     }
 
     ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
@@ -72,20 +70,20 @@ public class ActivitiesFragment extends Fragment {
             icon = ContextCompat.getDrawable(recyclerView.getContext(), R.drawable.delete_sweep_24px);
             background = new ColorDrawable(getResources().getColor(R.color.lineColor, null));
 
-            int iconMargin = icon.getIntrinsicHeight();
-            int iconTop = itemView.getTop() + (itemView.getHeight() - icon.getIntrinsicHeight()) / 2;
-            int iconBottom = iconTop + icon.getIntrinsicHeight();
+            int iconMargin = icon.getIntrinsicHeight() * 2;
+            int iconTop = itemView.getTop() + (itemView.getHeight() - icon.getIntrinsicHeight() * 2) / 2;
+            int iconBottom = iconTop + icon.getIntrinsicHeight() * 2;
 
             if (dX > 0) { // Swiping to the right
                 int iconLeft = itemView.getLeft() + iconMargin;
-                int iconRight = iconLeft + icon.getIntrinsicWidth();
+                int iconRight = iconLeft + icon.getIntrinsicWidth() * 2;
                 icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
 
                 background.setBounds(itemView.getLeft(), itemView.getTop(),
                         itemView.getLeft() + ((int) dX), itemView.getBottom());
 
             } else if (dX < 0) { // Swiping to the left
-                int iconLeft = itemView.getRight() - iconMargin - icon.getIntrinsicWidth();
+                int iconLeft = itemView.getRight() - iconMargin - icon.getIntrinsicWidth() * 2;
                 int iconRight = itemView.getRight() - iconMargin;
                 icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
 

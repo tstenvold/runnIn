@@ -2,6 +2,7 @@ package t00212844.comp2161.afinal;
 
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
@@ -77,6 +78,15 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
         holder.distance.setText("10km");
 
         File png = new File(context.getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(view.getContext(), SingleRun.class);
+                //TODO pass information from here
+                context.startActivity(intent);
+            }
+        });
 
 
         if (!png.exists()) {

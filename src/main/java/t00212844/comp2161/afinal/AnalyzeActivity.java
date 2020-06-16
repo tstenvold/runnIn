@@ -34,10 +34,10 @@ public class AnalyzeActivity {
     }
 
     public static double getCaloriesBurned(int weight, int minutes) {
-
+        //Weight is in kilograms
         //TODO make it capable of being dynamic to support walking to Running
         //estimates the calories burned during jogging
-        double cal = JOGMET * 3.5 * weight / 200 * minutes;
+        double cal = ((JOGMET * 3.5 * weight) / 200) * minutes;
         return cal;
     }
 
