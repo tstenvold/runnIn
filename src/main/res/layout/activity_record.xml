@@ -5,12 +5,13 @@
     android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:elevation="0dp"
     android:keepScreenOn="true"
     tools:context=".Record">
 
     <View
         android:id="@+id/divider8"
-        android:layout_width="409dp"
+        android:layout_width="0dp"
         android:layout_height="1dp"
         android:background="?android:attr/listDivider"
         app:layout_constraintEnd_toEndOf="parent"
@@ -19,7 +20,7 @@
 
     <View
         android:id="@+id/divider4"
-        android:layout_width="409dp"
+        android:layout_width="0dp"
         android:layout_height="1dp"
         android:background="?android:attr/listDivider"
         app:layout_constraintStart_toStartOf="parent"
@@ -27,7 +28,7 @@
 
     <View
         android:id="@+id/divider2"
-        android:layout_width="409dp"
+        android:layout_width="0dp"
         android:layout_height="1dp"
         android:background="?android:attr/listDivider"
         app:layout_constraintEnd_toEndOf="parent"
@@ -56,8 +57,8 @@
         android:clickable="true"
         android:focusable="true"
         android:longClickable="true"
-        android:onClick="startRecording"
         android:textAlignment="center"
+        app:fabSize="auto"
         app:layout_constraintBottom_toBottomOf="@+id/row_frag_cardview"
         app:layout_constraintEnd_toEndOf="@+id/row_frag_cardview"
         app:srcCompat="@android:drawable/ic_media_play" />
@@ -67,12 +68,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:layout_marginTop="8dp"
         android:layout_weight="0"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
         android:text="@string/pace"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/divider6"
-        app:layout_constraintTop_toTopOf="@+id/textView_disText" />
+        app:layout_constraintTop_toBottomOf="@+id/textView_Time" />
 
     <TextView
         android:id="@+id/textView_Distance"
@@ -80,12 +83,12 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:layout_weight=".5"
-        android:textAlignment="viewStart"
+        android:textAlignment="center"
         android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="@+id/textView_disText"
+        app:layout_constraintBottom_toBottomOf="@+id/divider6"
         app:layout_constraintEnd_toStartOf="@+id/divider6"
-        app:layout_constraintStart_toEndOf="@+id/textView_disText"
-        app:layout_constraintTop_toTopOf="@+id/textView_disText" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView_disText" />
 
     <TextView
         android:id="@+id/textView_Pace"
@@ -93,24 +96,24 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:layout_weight="1"
-        android:text="@string/paceDefault"
         android:textAlignment="center"
-        android:textSize="24sp"
-        app:layout_constraintBottom_toBottomOf="@+id/textView_paceText"
+        android:textSize="30sp"
+        app:layout_constraintBottom_toBottomOf="@+id/divider6"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textView_paceText"
-        app:layout_constraintTop_toTopOf="@+id/textView_paceText" />
+        app:layout_constraintStart_toEndOf="@+id/divider6"
+        app:layout_constraintTop_toBottomOf="@+id/textView_paceText" />
 
     <TextView
         android:id="@+id/textView_disText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:layout_marginTop="8dp"
         android:layout_weight="0"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
         android:text="@string/distance"
-        app:layout_constraintBottom_toBottomOf="@+id/divider6"
+        app:layout_constraintEnd_toStartOf="@+id/divider6"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView_Time" />
 
@@ -119,25 +122,27 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
+        android:layout_marginTop="8dp"
         android:layout_weight="0"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
         android:text="@string/elevation"
-        app:layout_constraintBottom_toBottomOf="@+id/divider7"
+        app:layout_constraintEnd_toStartOf="@+id/divider7"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/divider6" />
 
     <TextView
-        android:id="@+id/textView_tbdText"
+        android:id="@+id/textCalories"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_weight="0"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:text="@string/elevation"
+        android:text="@string/calories"
         app:layout_constraintBottom_toBottomOf="@+id/textView_elText"
-        app:layout_constraintStart_toStartOf="@+id/divider7"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/divider7"
         app:layout_constraintTop_toTopOf="@+id/textView_elText" />
 
     <TextView
@@ -146,26 +151,26 @@
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:layout_weight=".5"
-        android:textAlignment="viewStart"
+        android:textAlignment="center"
         android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="@+id/textView_elText"
+        app:layout_constraintBottom_toBottomOf="@+id/divider7"
         app:layout_constraintEnd_toStartOf="@+id/divider7"
-        app:layout_constraintStart_toEndOf="@+id/textView_elText"
-        app:layout_constraintTop_toTopOf="@+id/textView_elText" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView_elText" />
 
     <TextView
-        android:id="@+id/textView_location"
+        android:id="@+id/textkcal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:layout_weight="1"
-        android:text="@string/location"
         android:textAlignment="center"
         android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="@+id/textView_tbdText"
+        app:layout_constraintBottom_toBottomOf="@+id/divider7"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/textView_tbdText"
-        app:layout_constraintTop_toTopOf="@+id/textView_tbdText" />
+        app:layout_constraintStart_toEndOf="@+id/divider7"
+        app:layout_constraintTop_toBottomOf="@+id/textCalories"
+        app:layout_constraintVertical_bias="0.4" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_mylocation"
@@ -217,5 +222,20 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/divider6" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabRecordSettings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="4dp"
+        android:backgroundTint="@android:color/transparent"
+        android:src="@drawable/settings_24px"
+        app:backgroundTint="@android:color/transparent"
+        app:borderWidth="0dp"
+        app:elevation="0dp"
+        app:fabSize="mini"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

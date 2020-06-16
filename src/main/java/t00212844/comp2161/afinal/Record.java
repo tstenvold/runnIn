@@ -2,6 +2,8 @@ package t00212844.comp2161.afinal;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -21,6 +23,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -54,19 +57,21 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.Locale;
 
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineCap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineJoin;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
 
+
 public class Record extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, LocationListener, PermissionsListener {
 
     private static final int PERMISSION_FINE_LOCATION = 0;
+    private static final int ANIMATION_IMMEDIATE = 500;
     private final int DEFAULT_ZOOM = 14;
     private final int ANIMATION_SHORT = 3000;
-    public boolean isRunning;
+    private boolean isRunning;
+    private long pausedTime = 0;
     private Chronometer chronometer;
     private FloatingActionButton play;
     private FloatingActionButton myLoc;
@@ -75,36 +80,48 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     private ArrayList<Location> gpsTrack;
     private List<Point> mapTrack;
     private TextView tvDistance;
+    private TextView tvCalories;
     private CountDownTimer timer;
     private MapboxMap mapboxMap;
     private PermissionsManager permissionsManager;
     private TextToSpeech tts;
 
+    public Record() {
+        // Required empty public constructor
+    }
+
+    public static Record newInstance(String param1, String param2) {
+        Record fragment = new Record();
+        return fragment;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_record);
+
         mLayout = findViewById(R.id.main_layout);
         chronometer = findViewById(R.id.textView_Time);
         tvDistance = findViewById(R.id.textView_Distance);
+        tvCalories = findViewById(R.id.textkcal);
         play = findViewById(R.id.button_record);
         myLoc = findViewById(R.id.fab_mylocation);
         isRunning = false;
         gpsTrack = new ArrayList<>();
         mapTrack = new ArrayList<>();
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        tts = new TextToSpeech(getApplicationContext(), status -> {
-            if (status != TextToSpeech.ERROR) {
-                tts.setLanguage(Locale.ENGLISH);
-            }
-        });
+        if (savedInstanceState != null) {
+            pausedTime = savedInstanceState.getLong(getString(R.string.time), 0);
+            gpsTrack = savedInstanceState.getParcelableArrayList(getString(R.string.gps));
+            isRunning = savedInstanceState.getBoolean(getString(R.string.isRunning), false);
+        }
 
         //check power
-        PowerManager powerManager = (PowerManager) getApplicationContext().getSystemService(POWER_SERVICE);
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         String packageName = getPackageName();
         if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
-            Toast.makeText(getApplicationContext(), "Please Disable Battery Optimization for this Application", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getBaseContext(), "Please Disable Battery Optimization for this Application", Toast.LENGTH_SHORT).show();
         }
 
         myLoc.setOnClickListener(new View.OnClickListener() {
@@ -125,14 +142,22 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
             }
         });
 
+        play.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startRecording(view);
+            }
+        });
+
         play.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 //TODO launch new Activity with everything loaded (IE the edit activity)
-                Toast.makeText(getApplicationContext(), "Saving Run", Toast.LENGTH_SHORT).show();
+                //TODO make runnable to save in background and do calculations
+                Toast.makeText(getBaseContext(), "Saving Run", Toast.LENGTH_SHORT).show();
                 try {
-                    final File file = new File(getBaseContext().getFilesDir(),
-                            DateFormat.format("dd-mm-YYYY", Calendar.getInstance().getTime()).toString()
+                    final File file = new File(getFilesDir(),
+                            DateFormat.format("dd/MM/yyyy", Calendar.getInstance().getTime()).toString()
                                     + tvDistance.getText().toString()
                                     + (chronometer.getBase() - SystemClock.elapsedRealtime())
                                     + ".json");
@@ -145,14 +170,16 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
             }
         });
 
-        Mapbox.getInstance(this, getString(R.string.access_token));
+        Mapbox.getInstance(getBaseContext(), getString(R.string.access_token));
 
         SupportMapFragment mapFragment;
         if (savedInstanceState == null) {
 
             final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-
-            MapboxMapOptions options = MapboxMapOptions.createFromAttributes(this, null);
+            MapboxMapOptions options = MapboxMapOptions.createFromAttributes(getBaseContext(), null);
+            options.logoEnabled(false);
+            options.tiltGesturesEnabled(false);
+            options.attributionEnabled(false);
             options.camera(new CameraPosition.Builder().target(new LatLng(50.670493, -120.364049)).zoom(DEFAULT_ZOOM).build());
             mapFragment = SupportMapFragment.newInstance(options);
             transaction.add(R.id.row_frag_container, mapFragment, getString(R.string.mapID));
@@ -165,8 +192,8 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         if (mapFragment != null) {
             mapFragment.getMapAsync(new OnMapReadyCallback() {
                 @Override
-                public void onMapReady(@NonNull MapboxMap mapboxMap) {
-                    Record.this.mapboxMap = mapboxMap;
+                public void onMapReady(@NonNull MapboxMap mbox) {
+                    mapboxMap = mbox;
                     mapboxMap.setStyle(Style.OUTDOORS, new Style.OnStyleLoaded() {
                         @Override
                         public void onStyleLoaded(@NonNull Style style) {
@@ -181,7 +208,6 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                 }
             });
         }
-
     }
 
     private void initLayers(@NonNull Style loadedMapStyle) {
@@ -191,7 +217,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                 lineCap(Property.LINE_CAP_ROUND),
                 lineJoin(Property.LINE_JOIN_ROUND),
                 lineWidth(8f),
-                lineColor(getColor(R.color.colorAccent))
+                lineColor(ContextCompat.getColor(getBaseContext(), R.color.lineColor))
         );
         loadedMapStyle.addLayer(routeLayer);
     }
@@ -199,10 +225,10 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     @SuppressWarnings({"MissingPermission"})
     private void enableLocationComponent(@NonNull Style loadedMapStyle) {
 // Check if permissions are enabled and if not request
-        if (PermissionsManager.areLocationPermissionsGranted(this)) {
+        if (PermissionsManager.areLocationPermissionsGranted(getBaseContext())) {
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
             locationComponent.activateLocationComponent(
-                    LocationComponentActivationOptions.builder(this, loadedMapStyle).build());
+                    LocationComponentActivationOptions.builder(getBaseContext(), loadedMapStyle).build());
             locationComponent.setLocationComponentEnabled(true);
             locationComponent.setCameraMode(CameraMode.TRACKING);
             locationComponent.setRenderMode(RenderMode.NORMAL);
@@ -218,19 +244,19 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
         criteria.setPowerRequirement(Criteria.POWER_HIGH);
         String provider = locationManager.getBestProvider(criteria, true);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationManager.requestLocationUpdates(provider, 5000, 10, this);
+        if (ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            locationManager.requestLocationUpdates(provider, 15000, 30, this);
         } else {
             requestLocationPermission();
         }
     }
 
     private void requestLocationPermission() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
             Snackbar.make(mLayout, R.string.request_location, Snackbar.LENGTH_INDEFINITE).setAction(R.string.ok, new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    ActivityCompat.requestPermissions(Record.this, new String[]{Manifest.permission.CAMERA}, PERMISSION_FINE_LOCATION);
+                    ActivityCompat.requestPermissions((Activity) getBaseContext(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_FINE_LOCATION);
                 }
             }).show();
 
@@ -244,38 +270,52 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         if (!isRunning) {
             isRunning = true;
             play.setImageResource(android.R.drawable.ic_media_pause);
-            chronometer.setBase(SystemClock.elapsedRealtime());
+            chronometer.setBase(SystemClock.elapsedRealtime() + pausedTime);
             requestLocation();
             chronometer.start();
+            runBackgroundCalculations(30000);
 
         } else {
             isRunning = false;
+            pausedTime = chronometer.getBase() - SystemClock.elapsedRealtime();
             play.setImageResource(android.R.drawable.ic_media_play);
             locationManager.removeUpdates(this);
             chronometer.stop();
+            if (timer != null) {
+                timer.cancel();
+            }
         }
     }
 
     public void startRecording(View view) {
         startTimer();
-        runBackgroundCalculations(30000);
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        gpsTrack.add(location);
-        mapTrack.add(Point.fromLngLat(location.getLongitude(), location.getLatitude()));
 
-        mapboxMap.getStyle(new Style.OnStyleLoaded() {
-            @Override
-            public void onStyleLoaded(@NonNull Style style) {
-                GeoJsonSource source = style.getSourceAs(getString(R.string.runGeoJsonId));
-                if (source != null) {
-                    source.setGeoJson(LineString.fromLngLats(mapTrack));
+        if (isRunning) {
+            gpsTrack.add(location);
+            mapTrack.add(Point.fromLngLat(location.getLongitude(), location.getLatitude()));
+            Location lastKnownLocation = mapboxMap.getLocationComponent().getLastKnownLocation();
+
+            //TODO fix this so it only does it after the view is reloaded
+            CameraPosition position = new CameraPosition.Builder()
+                    .target(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()))
+                    .build();
+
+            mapboxMap.getStyle(new Style.OnStyleLoaded() {
+                @Override
+                public void onStyleLoaded(@NonNull Style style) {
+                    GeoJsonSource source = style.getSourceAs(getString(R.string.runGeoJsonId));
+                    if (source != null) {
+                        source.setGeoJson(LineString.fromLngLats(mapTrack));
+                    }
                 }
-            }
-        });
-        mapboxMap.getLocationComponent().forceLocationUpdate(location);
+            });
+            mapboxMap.getLocationComponent().forceLocationUpdate(location);
+            mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), ANIMATION_IMMEDIATE);
+        }
     }
 
     @Override
@@ -311,13 +351,16 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                     tvDistance.setText(distanceText);
                 }
 
-                if (distance > 200) {
+                if (distance > 10) {
                     format = new DecimalFormat("00");
                     double pace = AnalyzeActivity.getOverallPace(gpsTrack, chronometer.getBase());
                     int min = (int) pace;
                     int sec = (int) ((pace - min) * 60);
                     TextView tvPace = findViewById(R.id.textView_Pace);
                     tvPace.setText(format.format(min) + ":" + format.format(sec) + " min/km");
+
+                    tvCalories.setText(format.format(AnalyzeActivity.getCaloriesBurned(70,
+                            (int) (SystemClock.elapsedRealtime() - chronometer.getBase()) / 60000)));
                 }
 
                 //tts.speak("meters", TextToSpeech.QUEUE_FLUSH, null,"utterance-id");
@@ -345,7 +388,10 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     }
 
     @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(getString(R.string.time), SystemClock.elapsedRealtime() - chronometer.getBase());
+        outState.putParcelableArrayList(getString(R.string.gps), gpsTrack);
+        outState.putBoolean(getString(R.string.isRunning), isRunning);
     }
 }

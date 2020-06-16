@@ -7,6 +7,8 @@ import java.util.ArrayList;
 
 public class AnalyzeActivity {
 
+    private static final int JOGMET = 11;
+
     public static double calculateDistance(ArrayList<Location> gpsTrack) {
         double distance = 0;
         int index = 0;
@@ -29,6 +31,14 @@ public class AnalyzeActivity {
             el = (int) loc.getAltitude();
         }
         return el;
+    }
+
+    public static double getCaloriesBurned(int weight, int minutes) {
+
+        //TODO make it capable of being dynamic to support walking to Running
+        //estimates the calories burned during jogging
+        double cal = JOGMET * 3.5 * weight / 200 * minutes;
+        return cal;
     }
 
     public static int getElevationGain(ArrayList<Location> gpsTrack) {

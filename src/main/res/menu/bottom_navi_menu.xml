@@ -2,16 +2,16 @@
     <item
         android:id="@+id/runs"
         android:enabled="true"
-        android:icon="@android:drawable/ic_dialog_alert"
+        android:icon="@drawable/ic_home_black_24dp"
         android:title="Activites" />
     <item
         android:id="@+id/record"
         android:enabled="true"
-        android:icon="@android:drawable/ic_dialog_dialer"
+        android:icon="@drawable/directions_run_24px"
         android:title="Run" />
     <item
         android:id="@+id/user"
         android:enabled="true"
-        android:icon="@android:drawable/ic_dialog_info"
-        android:title="User" />
+        android:icon="@drawable/account_circle_24px"
+        android:title="Profile" />
 </menu>

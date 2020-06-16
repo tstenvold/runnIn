@@ -1,34 +1,67 @@
 <resources>
     <string name="app_name">runnIN</string>
-    <string name="title_activity_record">MainActivity</string>
     <string name="ok">ok</string>
-    <string name="request_location">Please enable Location access Application needs access to your location.</string>
+    <string name="request_location">Please enable Location Access, runnIn requires access to your location.</string>
     <string name="location_unavailable">Location Access Not Permitted</string>
     <string name="location_allowed">Location Access Granted</string>
-    <string name="pace">"Pace: "</string>
-    <string name="distance">"Distance: "</string>
+    <string name="pace">"Pace"</string>
+    <string name="split">"Split"</string>
+    <string name="distance">"Distance"</string>
     <string name="meters">m</string>
+    <string name="yards">y</string>
     <string name="kilometers">km</string>
-    <string name="elevation">Elevation:</string>
+    <string name="miles">mil</string>
+    <string name="elevation">Elevation Gain</string>
     <string name="location">tbd</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="access_token">pk.eyJ1IjoidHN0ZW52b2xkIiwiYSI6ImNrYjZxZW1zbjAxNjAycm9iNjZ2MnhneTkifQ.Pm56qnLeN1A5jnl6a61X5g</string>
     <string name="logo">runnIN Logo</string>
-    <string name="slogan">Elevate Aspirations!</string>
-    <string name="paceDefault">0:00 min/km</string>
-    <string name="title_activity_login">LoginActivity</string>
-    <string name="prompt_email">Email</string>
-    <string name="prompt_password">Password</string>
-    <string name="action_sign_in">Sign in or register</string>
-    <string name="action_sign_in_short">Sign in</string>
-    <string name="welcome">"Welcome !"</string>
-    <string name="invalid_username">Not a valid username</string>
-    <string name="invalid_password">Password must be >5 characters</string>
-    <string name="login_failed">"Login failed"</string>
+    <string name="paceDefault">0:00</string>
+    <string name="minperkm">min/km</string>
+    <string name="minpermil">min/mil</string>
+
+
     <string name="mapview">MapView Icon</string>
     <string name="runGeoJsonId">geojson-source</string>
     <string name="runGeoJsonLayerId">geojson-layer</string>
     <string name="mapID">mapID</string>
-    <string name="title_activity_main">MainActivity</string>
+
+    <string name="metric">Metric</string>
+    <string name="imperial">Imperial</string>
+    <string name="name">Name</string>
+    <string name="weight">Weight</string>
+    <string name="avatar">Avatar</string>
+    <string name="age">Age</string>
+    <string name="enterName">Donovan Bailey</string>
+    <string name="enterAge">Age</string>
+    <string name="units">Units</string>
+    <string name="height">Height</string>
+    <string name="kilo">kg</string>
+    <string name="pound">lbs</string>
+    <string name="centimeter">cm</string>
+    <string name="foot">ft</string>
+    <string name="inch">in</string>
+    <string name="exampleDate">01/01/1970</string>
+    <string name="birthday">Date Of Birth</string>
+    <string name="save">Save</string>
+    <string name="defaultHeight">185</string>
+    <string name="defaultWeight">75</string>
+
+    <string name="lastkmin">Last Kilometer In</string>
+    <string name="lastmilin">Last Mile In</string>
+    <string name="minutes">Minutes</string>
+    <string name="seconds">seconds</string>
+    <string name="starting">Starting Run</string>
+    <string name="stopping">Stopping Run</string>
+
+    <string name="personalInfo">This information is not mandatory but improves the
+        accuracy of some of the statistics.</string>
+    <string name="info">Info</string>
+    <string name="zero">0</string>
+    <string name="calories">Calories</string>
+    <string name="time">time</string>
+    <string name="gps">gps</string>
+    <string name="isRunning">isrunning</string>
+    <string name="curitem">currentitem</string>
+
+
 </resources>
