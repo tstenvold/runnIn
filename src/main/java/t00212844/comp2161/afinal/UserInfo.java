@@ -69,8 +69,7 @@ public class UserInfo extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_user_info, container, false);
         labeledSwitch = view.findViewById(R.id.switch_units);
-        avatar = view.findViewById(R.id.avatarImage);
-        FloatingActionButton imageFab = view.findViewById(R.id.editImage);
+        avatar = view.findViewById(R.id.avatarImageView);
         FloatingActionButton detailInfo = view.findViewById(R.id.detailsInfo);
         weightUnit = view.findViewById(R.id.weightUnit);
         name = view.findViewById(R.id.editName);
@@ -101,7 +100,7 @@ public class UserInfo extends Fragment {
             }
         });
 
-        imageFab.setOnClickListener(new View.OnClickListener() {
+        avatar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent photoPicker = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
@@ -163,7 +162,7 @@ public class UserInfo extends Fragment {
                     try {
                         ims = getContext().getContentResolver().openInputStream(avatarpath);
                         Bitmap bmpImage = BitmapFactory.decodeStream(ims);
-                        baos = new FileOutputStream(getContext().getFilesDir() + "/avatar.png");
+                        baos = new FileOutputStream(getContext().getFilesDir() + "/" + getString(R.string.avatarpath));
                         bmpImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
@@ -199,7 +198,7 @@ public class UserInfo extends Fragment {
         height.setText(pref.getString(getString(R.string.height), ""));
         dob.setText(pref.getString(getString(R.string.birthday), ""));
 
-        File avatarFile = new File(getContext().getFilesDir() + "/avatar.png");
+        File avatarFile = new File(getContext().getFilesDir() + "/" + getString(R.string.avatarpath));
         if (avatarFile.exists()) {
             avatarpath = Uri.parse(avatarFile.getAbsolutePath());
             avatar.setImageURI(avatarpath);

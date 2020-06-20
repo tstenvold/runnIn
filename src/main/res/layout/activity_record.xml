@@ -51,8 +51,8 @@
         android:id="@+id/button_record"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="32dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
         android:baselineAlignBottom="true"
         android:clickable="true"
         android:focusable="true"
@@ -62,6 +62,53 @@
         app:layout_constraintBottom_toBottomOf="@+id/row_frag_cardview"
         app:layout_constraintEnd_toEndOf="@+id/row_frag_cardview"
         app:srcCompat="@android:drawable/ic_media_play" />
+
+    <TextView
+        android:id="@+id/tvResume"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:elevation="8dp"
+        android:gravity="center"
+        android:text="@string/resume"
+        android:textAlignment="center"
+        android:textColor="@color/colorPrimary"
+        android:textSize="12sp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/button_resume"
+        app:layout_constraintEnd_toEndOf="@+id/button_resume"
+        app:layout_constraintStart_toStartOf="@+id/button_resume"
+        app:layout_constraintTop_toTopOf="@+id/button_resume" />
+
+    <TextView
+        android:id="@+id/tvEndRun"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:elevation="8dp"
+        android:gravity="center"
+        android:text="@string/end"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="12sp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="@+id/button_record"
+        app:layout_constraintEnd_toEndOf="@+id/button_record"
+        app:layout_constraintStart_toStartOf="@+id/button_record"
+        app:layout_constraintTop_toTopOf="@+id/button_record" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/button_resume"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:backgroundTint="@android:color/white"
+        android:clickable="true"
+        android:focusable="auto"
+        android:tint="@android:color/white"
+        android:visibility="invisible"
+        app:backgroundTint="@color/colorAccent"
+        app:borderWidth="3dp"
+        app:fabSize="auto"
+        app:layout_constraintBottom_toBottomOf="@+id/button_record"
+        app:layout_constraintEnd_toStartOf="@+id/button_record" />
 
     <TextView
         android:id="@+id/textView_paceText"

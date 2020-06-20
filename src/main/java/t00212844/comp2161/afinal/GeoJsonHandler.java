@@ -2,6 +2,7 @@ package t00212844.comp2161.afinal;
 
 import android.content.Context;
 import android.location.Location;
+import android.text.format.DateFormat;
 import android.util.JsonReader;
 import android.util.JsonWriter;
 
@@ -15,8 +16,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.List;
 
 public class GeoJsonHandler {
@@ -43,8 +47,20 @@ public class GeoJsonHandler {
         return points;
     }
 
-    public static void writeJson(File file, ArrayList<Location> gpsTrack) throws IOException {
-        int num = 0;
+    public static void writeJson(Context context, ArrayList<Location> gpsTrack, String runName) throws IOException {
+
+        NumberFormat format = new DecimalFormat("0.00");
+
+        double distance = AnalyzeActivity.getDistance(gpsTrack);
+        double time = AnalyzeActivity.getTime(gpsTrack);
+        double pace = AnalyzeActivity.getOverallPace(gpsTrack);
+
+        final File file = new File(context.getFilesDir(), runName + "_" + format.format(distance) + "_" +
+                DateFormat.format("dd_MM_yyyy", Calendar.getInstance().getTime()).toString()
+                + "_" + time
+                + ".json");
+
+        file.createNewFile();
         FileOutputStream fo = new FileOutputStream(file);
         JsonWriter writer = new JsonWriter(new OutputStreamWriter(fo, StandardCharsets.UTF_16));
         writer.setIndent("  ");
@@ -57,6 +73,10 @@ public class GeoJsonHandler {
         writer.name("type").value("Feature");
         writer.name("properties");
         writer.beginObject();
+        writer.name("name").value(runName);
+        writer.name("distance").value(distance);
+        writer.name("time").value(time);
+        writer.name("pace").value(pace);
         writer.endObject();
         writer.name("geometry");
         writer.beginObject();
@@ -130,6 +150,4 @@ public class GeoJsonHandler {
 
         return gpsTrack;
     }
-
-
 }

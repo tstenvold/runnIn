@@ -32,7 +32,7 @@ import java.util.Locale;
 
 public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.ViewHolder> {
 
-    private static final int DEFAULT_ZOOM = 13;
+    private static final int DEFAULT_ZOOM = 14;
     private final ArrayList<File> jsonFiles;
 
     public ActivitiesAdapter(ArrayList<File> sList) {
@@ -46,87 +46,9 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
         return new ViewHolder(view);
     }
 
-    private static Point calculateMidpointMapImage(List<Point> points) {
-
-        int midpoint = (points.size() / 2) - 1;
-
-        double longf = (points.get(0).longitude() + points.get(midpoint).longitude()) / 2;
-        double latf = (points.get(0).latitude() + points.get(midpoint).latitude()) / 2;
-        double longe = (points.get(points.size() - 1).longitude() + points.get(midpoint).longitude()) / 2;
-        double late = (points.get(points.size() - 1).latitude() + points.get(midpoint).latitude()) / 2;
-
-        double finalLong = (longf + longe) / 2;
-        double finalLat = (latf + late) / 2;
-
-        return Point.fromLngLat(finalLong, finalLat);
-    }
-
     @Override
     public int getItemCount() {
         return jsonFiles.size();
-    }
-
-    @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Context context = holder.itemView.getContext();
-        File file = jsonFiles.get(position);
-        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyy HH:mm", Locale.CANADA);
-
-        holder.activityName.setText(file.getName().substring(0, file.getName().length() - 5));
-        holder.date.setText(format.format(file.lastModified()));
-        holder.time.setText("22:20");
-        holder.distance.setText("10km");
-
-        File png = new File(context.getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
-
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(view.getContext(), SingleRun.class);
-                //TODO pass information from here
-                context.startActivity(intent);
-            }
-        });
-
-
-        if (!png.exists()) {
-            try {
-                List<Point> points = GeoJsonHandler.getFilePoints(file);
-                if (points.size() == 0) {
-                    points.add(Point.fromLngLat(-120.364049, 50.670493));
-                }
-                LineString lineString = LineString.fromLngLats(points);
-
-                Point pointMid = calculateMidpointMapImage(points);
-                MapboxStaticMap staticImage = MapboxStaticMap.builder()
-                        .accessToken(context.getString(R.string.access_token))
-                        .styleId(StaticMapCriteria.STREET_STYLE)
-                        //Loads the map center on the middle point of run. Crude but should be ok
-                        .cameraPoint(pointMid)
-                        .cameraZoom(DEFAULT_ZOOM)
-                        .width(720) // Image width
-                        .height(720) // Image height
-                        .geoJson(lineString)
-                        .build();
-
-                String imageUrl = staticImage.url().toString();
-                Picasso.with(context).load(imageUrl).into(picassoImageTarget(context, png.getAbsolutePath()));
-                Picasso.with(context).load(imageUrl).into(holder.mapView);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            Bitmap myBitmap = BitmapFactory.decodeFile(png.getAbsolutePath());
-            if (myBitmap != null) {
-                holder.mapView.setImageBitmap(myBitmap);
-            } else {
-                png.delete();
-            }
-            //remove on release. This deletes the cached images for testing
-            png.delete();
-        }
-
     }
 
     /**
@@ -137,7 +59,7 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
      * @param imageName the path to the image
      * @return returns a Target that is overrrided to write to a file
      */
-    private Target picassoImageTarget(Context context, final String imageName) {
+    public static Target picassoImageTarget(Context context, final String imageName) {
         ContextWrapper cw = new ContextWrapper(context);
 
         return new Target() {
@@ -169,6 +91,69 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
             }
 
         };
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        Context context = holder.itemView.getContext();
+        File file = jsonFiles.get(position);
+        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyy HH:mm", Locale.CANADA);
+
+        holder.activityName.setText(file.getName().substring(0, file.getName().length() - 5));
+        holder.date.setText(format.format(file.lastModified()));
+        holder.time.setText("22:20");
+        holder.distance.setText("10km");
+
+        File png = new File(context.getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
+
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(view.getContext(), SingleRun.class);
+                intent.putExtra(view.getContext().getString(R.string.filepath), file.getName());
+                context.startActivity(intent);
+            }
+        });
+
+
+        if (!png.exists()) {
+            try {
+                List<Point> points = GeoJsonHandler.getFilePoints(file);
+                if (points.size() == 0) {
+                    points.add(Point.fromLngLat(-120.364049, 50.670493));
+                }
+                LineString lineString = LineString.fromLngLats(points);
+
+                Point pointMid = AnalyzeActivity.calculateMidpointMapImage(points);
+                MapboxStaticMap staticImage = MapboxStaticMap.builder()
+                        .accessToken(context.getString(R.string.access_token))
+                        .styleId(StaticMapCriteria.STREET_STYLE)
+                        //Loads the map center on the middle point of run. Crude but should be ok
+                        .cameraPoint(pointMid)
+                        .cameraZoom(DEFAULT_ZOOM)
+                        .width(720) // Image width
+                        .height(720) // Image height
+                        .geoJson(lineString)
+                        .build();
+
+                String imageUrl = staticImage.url().toString();
+                Picasso.with(context).load(imageUrl).into(picassoImageTarget(context, png.getAbsolutePath()));
+                Picasso.with(context).load(imageUrl).into(holder.mapView);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Bitmap myBitmap = BitmapFactory.decodeFile(png.getAbsolutePath());
+            if (myBitmap != null) {
+                holder.mapView.setImageBitmap(myBitmap);
+            } else {
+                png.delete();
+            }
+            //remove on release. This deletes the cached images for testing
+            //png.delete();
+        }
+
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

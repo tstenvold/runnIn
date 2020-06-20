@@ -3,7 +3,10 @@ package t00212844.comp2161.afinal;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -11,12 +14,14 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
-import android.text.format.DateFormat;
+import android.text.InputType;
 import android.view.View;
 import android.widget.Chronometer;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -50,12 +55,11 @@ import com.mapbox.mapboxsdk.style.layers.LineLayer;
 import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineCap;
@@ -75,12 +79,15 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     private Chronometer chronometer;
     private FloatingActionButton play;
     private FloatingActionButton myLoc;
+    private FloatingActionButton resume;
     private View mLayout;
     private LocationManager locationManager;
     private ArrayList<Location> gpsTrack;
     private List<Point> mapTrack;
     private TextView tvDistance;
     private TextView tvCalories;
+    private TextView tvResume;
+    private TextView tvEnd;
     private CountDownTimer timer;
     private MapboxMap mapboxMap;
     private PermissionsManager permissionsManager;
@@ -106,6 +113,9 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         tvCalories = findViewById(R.id.textkcal);
         play = findViewById(R.id.button_record);
         myLoc = findViewById(R.id.fab_mylocation);
+        resume = findViewById(R.id.button_resume);
+        tvResume = findViewById(R.id.tvResume);
+        tvEnd = findViewById(R.id.tvEndRun);
         isRunning = false;
         gpsTrack = new ArrayList<>();
         mapTrack = new ArrayList<>();
@@ -145,28 +155,22 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         play.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startRecording(view);
+                if (!isRunning && tvEnd.getVisibility() == View.VISIBLE) {
+                    endRun(view);
+                } else if (!isRunning) {
+                    startRecording();
+                } else {
+                    pauseRecording();
+                }
             }
         });
 
-        play.setOnLongClickListener(new View.OnLongClickListener() {
+        resume.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onLongClick(View v) {
-                //TODO launch new Activity with everything loaded (IE the edit activity)
-                //TODO make runnable to save in background and do calculations
-                Toast.makeText(getBaseContext(), "Saving Run", Toast.LENGTH_SHORT).show();
-                try {
-                    final File file = new File(getFilesDir(),
-                            DateFormat.format("dd/MM/yyyy", Calendar.getInstance().getTime()).toString()
-                                    + tvDistance.getText().toString()
-                                    + (chronometer.getBase() - SystemClock.elapsedRealtime())
-                                    + ".json");
-                    file.createNewFile();
-                    GeoJsonHandler.writeJson(file, gpsTrack);
-                } catch (IOException e) {
-                    e.printStackTrace();
+            public void onClick(View view) {
+                if (!isRunning) {
+                    startRecording();
                 }
-                return false;
             }
         });
 
@@ -266,29 +270,34 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         }
     }
 
-    private void startTimer() {
-        if (!isRunning) {
-            isRunning = true;
-            play.setImageResource(android.R.drawable.ic_media_pause);
-            chronometer.setBase(SystemClock.elapsedRealtime() + pausedTime);
-            requestLocation();
-            chronometer.start();
-            runBackgroundCalculations(30000);
+    private void startRecording() {
 
-        } else {
-            isRunning = false;
-            pausedTime = chronometer.getBase() - SystemClock.elapsedRealtime();
-            play.setImageResource(android.R.drawable.ic_media_play);
-            locationManager.removeUpdates(this);
-            chronometer.stop();
-            if (timer != null) {
-                timer.cancel();
-            }
-        }
+        isRunning = true;
+        play.setImageResource(android.R.drawable.ic_media_pause);
+        tvEnd.setVisibility(View.INVISIBLE);
+        resume.setVisibility(View.INVISIBLE);
+        tvResume.setVisibility(View.INVISIBLE);
+        chronometer.setBase(SystemClock.elapsedRealtime() + pausedTime);
+        requestLocation();
+        chronometer.start();
+        runBackgroundCalculations(30000);
+
     }
 
-    public void startRecording(View view) {
-        startTimer();
+    private void pauseRecording() {
+
+        isRunning = false;
+        pausedTime = chronometer.getBase() - SystemClock.elapsedRealtime();
+        play.setImageResource(0);
+        tvEnd.setVisibility(View.VISIBLE);
+        tvResume.setVisibility(View.VISIBLE);
+        resume.setVisibility(View.VISIBLE);
+
+        locationManager.removeUpdates(this);
+        chronometer.stop();
+        if (timer != null) {
+            timer.cancel();
+        }
     }
 
     @Override
@@ -338,7 +347,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
 
             public void onTick(long millisUntilFinished) {
                 NumberFormat format;
-                double distance = AnalyzeActivity.calculateDistance(gpsTrack);
+                double distance = AnalyzeActivity.getDistance(gpsTrack);
                 String distanceText = "";
 
                 if (distance < 1000) {
@@ -353,7 +362,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
 
                 if (distance > 10) {
                     format = new DecimalFormat("00");
-                    double pace = AnalyzeActivity.getOverallPace(gpsTrack, chronometer.getBase());
+                    double pace = AnalyzeActivity.getOverallPace(gpsTrack);
                     int min = (int) pace;
                     int sec = (int) ((pace - min) * 60);
                     TextView tvPace = findViewById(R.id.textView_Pace);
@@ -390,8 +399,50 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putLong(getString(R.string.time), SystemClock.elapsedRealtime() - chronometer.getBase());
+        outState.putLong(getString(R.string.time), chronometer.getBase());
         outState.putParcelableArrayList(getString(R.string.gps), gpsTrack);
         outState.putBoolean(getString(R.string.isRunning), isRunning);
+    }
+
+    private void endRun(View view) {
+        final String[] userRunName = new String[1];
+        String runName = "Evening Run"; //TODO time of day welcome / Name of Run
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+        builder.setTitle("Please Name the Run");
+        final EditText input = new EditText(view.getContext());
+        input.setInputType(InputType.TYPE_CLASS_TEXT);
+        input.setHint(runName);
+        builder.setView(input);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (input.getText().toString().equals("")) {
+                    userRunName[0] = runName;
+                } else {
+                    userRunName[0] = input.getText().toString();
+                }
+                final Handler handler = new Handler();
+                Runnable runnable = new Runnable() {
+                    public void run() {
+                        try {
+                            GeoJsonHandler.writeJson(view.getContext(), gpsTrack, userRunName[0]);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                runnable.run();
+
+                Intent intent = new Intent(view.getContext(), SingleRun.class);
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("ARRAYLIST", (Serializable) gpsTrack);
+                bundle.putString("runname", runName);
+                intent.putExtra("BUNDLE", bundle);
+                view.getContext().startActivity(intent);
+                finish();
+            }
+        });
+        builder.show();
     }
 }

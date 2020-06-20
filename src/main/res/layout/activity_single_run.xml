@@ -6,6 +6,15 @@
     android:layout_height="match_parent"
     tools:context=".SingleRun">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <ImageView
         android:id="@+id/imageView10"
         android:layout_width="wrap_content"
@@ -50,7 +59,7 @@
         app:layout_constraintBottom_toTopOf="@+id/textView13"
         app:layout_constraintStart_toEndOf="@+id/textView11"
         app:layout_constraintTop_toTopOf="@+id/textView11"
-        app:srcCompat="@drawable/timer_24px" />
+        app:srcCompat="@drawable/speed_24px" />
 
     <ImageView
         android:id="@+id/imageView6"
@@ -63,33 +72,33 @@
         app:layout_constraintTop_toTopOf="@+id/textView13"
         app:srcCompat="@drawable/directions_run_24px" />
 
-    <TextView
-        android:id="@+id/runName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:text="@string/app_name"
-        android:textSize="24sp"
-        app:layout_constraintStart_toEndOf="@+id/imageView2"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/imageView2"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/runAvatar"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:contentDescription="@string/avatar"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        app:cardCornerRadius="50dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar">
+
+        <ImageView
+            android:id="@+id/runAvatarImage"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:contentDescription="@string/avatar" />
+    </androidx.cardview.widget.CardView>
 
     <TextView
         android:id="@+id/runDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:text="@string/exampleDate"
         android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="@+id/runName"
-        app:layout_constraintTop_toBottomOf="@+id/runName" />
+        app:layout_constraintStart_toEndOf="@+id/runAvatar"
+        app:layout_constraintTop_toTopOf="@+id/runAvatar" />
 
     <TextView
         android:id="@+id/runDistance"
@@ -97,9 +106,9 @@
         android:layout_height="wrap_content"
         android:text="@string/zero"
         android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="@+id/imageView2"
+        app:layout_constraintBottom_toBottomOf="@+id/runAvatar"
         app:layout_constraintEnd_toStartOf="@+id/runTime"
-        app:layout_constraintStart_toEndOf="@+id/imageView2" />
+        app:layout_constraintStart_toEndOf="@+id/runAvatar" />
 
     <TextView
         android:id="@+id/runTime"
@@ -131,7 +140,7 @@
         android:text="@string/pace"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView2" />
+        app:layout_constraintTop_toBottomOf="@+id/runAvatar" />
 
     <TextView
         android:id="@+id/runFastPace"
@@ -240,10 +249,15 @@
         android:id="@+id/runMap"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="4dp"
         android:contentDescription="@string/mapview"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/imageView2"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView6" />
 
     <ImageView
         android:id="@+id/imageView5"
