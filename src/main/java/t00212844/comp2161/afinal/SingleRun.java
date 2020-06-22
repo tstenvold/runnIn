@@ -53,17 +53,17 @@ public class SingleRun extends AppCompatActivity {
     private long elgain;
     private int calories;
     private ArrayList<Location> gpsTrack;
+    private ArrayList<String> jsonProp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_single_run);
-        File file = null;
+        File file;
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(runName);
 
         mapView = findViewById(R.id.runMap);
         avatarView = findViewById(R.id.runAvatarImage);
@@ -83,6 +83,7 @@ public class SingleRun extends AppCompatActivity {
             file = new File(getFilesDir(), filepath);
             try {
                 gpsTrack = GeoJsonHandler.readJson(file);
+                jsonProp = GeoJsonHandler.readJsonProperties(file);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -98,6 +99,9 @@ public class SingleRun extends AppCompatActivity {
 
         }
 
+        if (jsonProp != null) {
+            runName = jsonProp.get(0);
+        }
         if (gpsTrack != null) {
             //TODO this probably needs to be handled Async
             distance = AnalyzeActivity.getDistance(gpsTrack);
@@ -108,10 +112,8 @@ public class SingleRun extends AppCompatActivity {
             elmax = AnalyzeActivity.getElevationHigh(gpsTrack);
             elmin = AnalyzeActivity.getElevationLow(gpsTrack);
             calories = AnalyzeActivity.getCaloriesBurned(70, time, pace);
-
         }
 
-        assert file != null;
         File mapFile = new File(getBaseContext().getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
         if (!mapFile.exists()) {
             getMapView(file);
@@ -140,18 +142,17 @@ public class SingleRun extends AppCompatActivity {
         paceTextView.setText(DateFormat.format("mm:ss", pace));
         paceFastTextView.setText(DateFormat.format("mm:ss", paceFast));
         calTextView.setText(numberFormat.format(calories));
+
+        getSupportActionBar().setTitle(runName);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                onBackPressed();
-                return true;
-
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
         }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override

@@ -21,20 +21,20 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class GeoJsonHandler {
 
     public static ArrayList<File> getJsonFiles(Context context) {
 
-        FileFilter ff = new FileFilter() {
-            public boolean accept(File file) {
-                return file.getName().endsWith(".json");
-            }
-        };
+        FileFilter ff = file -> file.getName().endsWith(".json");
 
         File[] ls = context.getFilesDir().listFiles(ff);
-        return new ArrayList<>(Arrays.asList(ls));
+        ArrayList<File> filelist = new ArrayList<>(Arrays.asList(Objects.requireNonNull(ls)));
+        Collections.reverse(filelist);
+        return filelist;
 
     }
 
@@ -74,9 +74,9 @@ public class GeoJsonHandler {
         writer.name("properties");
         writer.beginObject();
         writer.name("name").value(runName);
-        writer.name("distance").value(distance);
-        writer.name("time").value(time);
-        writer.name("pace").value(pace);
+        writer.name("distance").value(String.valueOf(distance));
+        writer.name("time").value(String.valueOf(time));
+        writer.name("pace").value(String.valueOf(pace));
         writer.endObject();
         writer.name("geometry");
         writer.beginObject();
@@ -99,12 +99,71 @@ public class GeoJsonHandler {
         writer.close();
     }
 
+    public static ArrayList<String> readJsonProperties(File file) throws IOException {
+        FileInputStream fis = new FileInputStream(file);
+        ArrayList<String> jsonprop = new ArrayList<>();
+        JsonReader reader = new JsonReader(new InputStreamReader(fis, StandardCharsets.UTF_16));
+        String runName = "";
+        String distance = "";
+        String time = "";
+        String pace = "";
+
+        reader.beginObject();
+        while (reader.hasNext()) {
+            String name = reader.nextName();
+            if (name.equals("features")) {
+                reader.beginArray();
+                reader.beginObject();
+                while (reader.hasNext()) {
+                    String name3 = reader.nextName();
+                    if (name3.equals("properties")) {
+                        reader.beginObject();
+                        while (reader.hasNext()) {
+                            String name2 = reader.nextName();
+                            switch (name2) {
+                                case "name":
+                                    runName = reader.nextString();
+                                    break;
+                                case "distance":
+                                    distance = reader.nextString();
+                                    break;
+                                case "time":
+                                    time = reader.nextString();
+                                    break;
+                                case "pace":
+                                    pace = reader.nextString();
+                                    break;
+                                default:
+                                    reader.skipValue();
+                                    break;
+                            }
+                        }
+                        reader.endObject();
+                    } else {
+                        reader.skipValue();
+                    }
+                }
+                reader.endObject();
+                reader.endArray();
+            } else {
+                reader.skipValue();
+            }
+        }
+        reader.endObject();
+
+        jsonprop.add(runName);
+        jsonprop.add(distance);
+        jsonprop.add(time);
+        jsonprop.add(pace);
+
+        return jsonprop;
+    }
+
     public static ArrayList<Location> readJson(File file) throws IOException {
         FileInputStream fis = new FileInputStream(file);
         JsonReader reader = new JsonReader(new InputStreamReader(fis, StandardCharsets.UTF_16));
         Location loc;
         ArrayList<Location> gpsTrack = new ArrayList<>();
-        long id = -1;
 
         reader.beginObject();
         while (reader.hasNext()) {

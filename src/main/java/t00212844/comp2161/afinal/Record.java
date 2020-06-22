@@ -78,7 +78,6 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     private long pausedTime = 0;
     private Chronometer chronometer;
     private FloatingActionButton play;
-    private FloatingActionButton myLoc;
     private FloatingActionButton resume;
     private View mLayout;
     private LocationManager locationManager;
@@ -90,7 +89,6 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     private TextView tvEnd;
     private CountDownTimer timer;
     private MapboxMap mapboxMap;
-    private PermissionsManager permissionsManager;
     private TextToSpeech tts;
 
     public Record() {
@@ -98,8 +96,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     }
 
     public static Record newInstance(String param1, String param2) {
-        Record fragment = new Record();
-        return fragment;
+        return new Record();
     }
 
     @Override
@@ -112,7 +109,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         tvDistance = findViewById(R.id.textView_Distance);
         tvCalories = findViewById(R.id.textkcal);
         play = findViewById(R.id.button_record);
-        myLoc = findViewById(R.id.fab_mylocation);
+        FloatingActionButton myLoc = findViewById(R.id.fab_mylocation);
         resume = findViewById(R.id.button_resume);
         tvResume = findViewById(R.id.tvResume);
         tvEnd = findViewById(R.id.tvEndRun);
@@ -237,7 +234,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
             locationComponent.setCameraMode(CameraMode.TRACKING);
             locationComponent.setRenderMode(RenderMode.NORMAL);
         } else {
-            permissionsManager = new PermissionsManager(this);
+            PermissionsManager permissionsManager = new PermissionsManager(this);
             permissionsManager.requestLocationPermissions(this);
         }
     }

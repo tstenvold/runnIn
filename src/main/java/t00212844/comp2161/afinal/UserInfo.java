@@ -55,8 +55,7 @@ public class UserInfo extends Fragment {
     }
 
     public static UserInfo newInstance(String param1, String param2) {
-        UserInfo fragment = new UserInfo();
-        return fragment;
+        return new UserInfo();
     }
 
     @Override
@@ -152,26 +151,24 @@ public class UserInfo extends Fragment {
 
     public void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) {
         super.onActivityResult(requestCode, resultCode, imageReturnedIntent);
-        switch (requestCode) {
-            case 0:
-                if (resultCode == RESULT_OK) {
-                    avatarpath = imageReturnedIntent.getData();
-                    InputStream ims = null;
-                    FileOutputStream baos = null;
+        if (requestCode == 0) {
+            if (resultCode == RESULT_OK) {
+                avatarpath = imageReturnedIntent.getData();
+                InputStream ims = null;
+                FileOutputStream baos = null;
 
-                    try {
-                        ims = getContext().getContentResolver().openInputStream(avatarpath);
-                        Bitmap bmpImage = BitmapFactory.decodeStream(ims);
-                        baos = new FileOutputStream(getContext().getFilesDir() + "/" + getString(R.string.avatarpath));
-                        bmpImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-
-                    avatar.setImageURI(avatarpath);
-                    avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                try {
+                    ims = getContext().getContentResolver().openInputStream(avatarpath);
+                    Bitmap bmpImage = BitmapFactory.decodeStream(ims);
+                    baos = new FileOutputStream(getContext().getFilesDir() + "/" + getString(R.string.avatarpath));
+                    bmpImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
                 }
-                break;
+
+                avatar.setImageURI(avatarpath);
+                avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            }
         }
     }
 

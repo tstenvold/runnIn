@@ -50,7 +50,7 @@ public class AnalyzeActivity {
 
     public static String getDistanceString(double distance, boolean isImperial) {
         NumberFormat format;
-        double formattedDistance = 0;
+        double formattedDistance;
 
         if (distance > 1000) {
             format = new DecimalFormat("0.00");
@@ -96,9 +96,9 @@ public class AnalyzeActivity {
     public static double getLastKMSpeed(ArrayList<Location> gpsTrack) {
         //returns speed in meters per second
         float speed = 0;
-        double distance = 0;
+        double distance;
         double totalDistance = 0;
-        double time = 0;
+        double time;
         int numOfSpeeds = 0;
 
         if (gpsTrack.size() > 0) {
@@ -123,9 +123,9 @@ public class AnalyzeActivity {
 
     public static double getFastestSpeed(ArrayList<Location> gpsTrack) {
         float speed = 0;
-        double distance = 0;
+        double distance;
         double totalDistance = 0;
-        double time = 0;
+        double time;
         int numOfSpeeds = 0;
         double fastestSpeed = 0;
 
@@ -166,7 +166,7 @@ public class AnalyzeActivity {
             for (int i = 0; i < gpsTrack.size() - 2; i++) {
                 Location loc1 = gpsTrack.get(i);
                 Location loc2 = gpsTrack.get(i + 1);
-                if (loc2.getAltitude() > loc1.getAltitude()) {
+                if (loc2.getAltitude() > loc1.getAltitude() && loc2.getAltitude() != 0.0 && loc1.getAltitude() != 0.0) {
                     el += loc2.getAltitude() - loc1.getAltitude();
                 }
             }
@@ -180,7 +180,9 @@ public class AnalyzeActivity {
         if (gpsTrack.size() > 0) {
             el = gpsTrack.get(0).getAltitude();
             for (Location point : gpsTrack) {
-                if (point.getAltitude() < el) {
+                if (point.getAltitude() < el && point.getAltitude() != 0.0) {
+                    el = point.getAltitude();
+                } else if (el == 0.0) {
                     el = point.getAltitude();
                 }
             }

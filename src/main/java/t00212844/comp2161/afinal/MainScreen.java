@@ -18,7 +18,7 @@ public class MainScreen extends AppCompatActivity {
     private int curItem;
 
     BottomNavigationView bottomNavigation;
-    BottomNavigationView.OnNavigationItemSelectedListener navigationItemSelectedListener =
+    final BottomNavigationView.OnNavigationItemSelectedListener navigationItemSelectedListener =
             new BottomNavigationView.OnNavigationItemSelectedListener() {
                 @Override
                 public boolean onNavigationItemSelected(@NonNull MenuItem item) {

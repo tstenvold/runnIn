@@ -28,17 +28,7 @@ public class ActivitiesFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public static Fragment newInstance(String s, String s1) {
-        ActivitiesFragment fragment = new ActivitiesFragment();
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+    final ItemTouchHelper.SimpleCallback simpleItemTouchCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
 
         private Drawable icon;
         private ColorDrawable background;
@@ -112,6 +102,15 @@ public class ActivitiesFragment extends Fragment {
             sAdapter.notifyDataSetChanged();
         }
     };
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    public static Fragment newInstance(String s, String s1) {
+        return new ActivitiesFragment();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
