@@ -4,12 +4,18 @@ import android.location.Location;
 
 import com.mapbox.geojson.Point;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class AnalyzeActivity {
 
     private static final int JOGMET = 11;
+    private static final double KMTOMIL = 1.609344;
+    private static final double MTOYD = 1.09361;
+    private static final double MPSTOMINKM = 16.6666667;
 
     public static double getDistance(ArrayList<Location> gpsTrack) {
         double distance = 0;
@@ -24,6 +30,43 @@ public class AnalyzeActivity {
             }
         }
         return distance;
+    }
+
+    public static double getDistanceInKm(ArrayList<Location> gpsTrack) {
+
+        return getDistance(gpsTrack) / 1000;
+    }
+
+    public static long getTime(ArrayList<Location> gpsTrack) {
+        long start;
+        long end;
+        if (gpsTrack.size() > 1) {
+            start = gpsTrack.get(0).getTime();
+            end = gpsTrack.get(gpsTrack.size() - 1).getTime();
+            return (end - start);
+        }
+        return 0;
+    }
+
+    public static String getDistanceString(double distance, boolean isImperial) {
+        NumberFormat format;
+        double formattedDistance = 0;
+
+        if (distance > 1000) {
+            format = new DecimalFormat("0.00");
+            formattedDistance = distance / 1000;
+            if (isImperial) {
+                formattedDistance /= KMTOMIL;
+            }
+        } else {
+            format = new DecimalFormat("##0");
+            formattedDistance = distance;
+            if (isImperial) {
+                formattedDistance /= MTOYD;
+            }
+        }
+
+        return format.format(formattedDistance);
     }
 
     public static Point calculateMidpointMapImage(List<Point> points) {
@@ -50,12 +93,70 @@ public class AnalyzeActivity {
         return el;
     }
 
-    public static double getCaloriesBurned(int weight, int minutes) {
-        //Weight is in kilograms
-        //TODO make it capable of being dynamic to support walking to Running
-        //estimates the calories burned during jogging
-        double cal = ((JOGMET * 3.5 * weight) / 200) * minutes;
-        return cal;
+    public static double getLastKMSpeed(ArrayList<Location> gpsTrack) {
+        //returns speed in meters per second
+        float speed = 0;
+        double distance = 0;
+        double totalDistance = 0;
+        double time = 0;
+        int numOfSpeeds = 0;
+
+        if (gpsTrack.size() > 0) {
+            for (int i = gpsTrack.size() - 1; i > 0; i--) {
+                distance = gpsTrack.get(i).distanceTo(gpsTrack.get(i - 1));
+                totalDistance += distance;
+                time = gpsTrack.get(i).getTime() - gpsTrack.get(i - 1).getTime();
+                speed += distance / (time / 1000);
+                numOfSpeeds++;
+                if (totalDistance > 1000) {
+                    break;
+                }
+            }
+        }
+        return speed / numOfSpeeds;
+    }
+
+    public static long getLastKMPace(ArrayList<Location> gpsTrack) {
+
+        return (long) (MPSTOMINKM / (getFastestSpeed(gpsTrack)) * 60000);
+    }
+
+    public static double getFastestSpeed(ArrayList<Location> gpsTrack) {
+        float speed = 0;
+        double distance = 0;
+        double totalDistance = 0;
+        double time = 0;
+        int numOfSpeeds = 0;
+        double fastestSpeed = 0;
+
+        if (gpsTrack.size() > 1) {
+            for (int i = 0; i < gpsTrack.size() - 2; i++) {
+                distance = gpsTrack.get(i).distanceTo(gpsTrack.get(i + 1));
+                totalDistance += distance;
+                time = gpsTrack.get(i + 1).getTime() - gpsTrack.get(i).getTime();
+                speed += distance / (time / 1000);
+                numOfSpeeds++;
+                if (totalDistance > 500) {
+                    if (speed / numOfSpeeds > fastestSpeed || fastestSpeed == 0) {
+                        fastestSpeed = speed / numOfSpeeds;
+                    }
+                    totalDistance = 0;
+                    speed = 0;
+                    numOfSpeeds = 0;
+                }
+            }
+        }
+        return fastestSpeed;
+    }
+
+    public static long getFastestPace(ArrayList<Location> gpsTrack) {
+
+        return (long) (MPSTOMINKM / (getFastestSpeed(gpsTrack)) * 60000);
+    }
+
+    public static long getOverallPace(ArrayList<Location> gpsTrack) {
+        double duration = (double) getTime(gpsTrack);
+        return (long) (duration / (getDistance(gpsTrack) / 1000));
     }
 
     public static int getElevationGain(ArrayList<Location> gpsTrack) {
@@ -73,21 +174,76 @@ public class AnalyzeActivity {
         return el;
     }
 
-    public static double getOverallPace(ArrayList<Location> gpsTrack) {
-        double duration = (double) getTime(gpsTrack);
-        return (duration / 60000) / (getDistance(gpsTrack) / 1000);
-    }
+    public static int getElevationLow(ArrayList<Location> gpsTrack) {
+        double el = 0;
 
-    public static long getTime(ArrayList<Location> gpsTrack) {
-        long start;
-        long end;
-        if (gpsTrack.size() > 1) {
-            start = gpsTrack.get(0).getTime();
-            end = gpsTrack.get(gpsTrack.size() - 1).getTime();
-            return (end - start);
+        if (gpsTrack.size() > 0) {
+            el = gpsTrack.get(0).getAltitude();
+            for (Location point : gpsTrack) {
+                if (point.getAltitude() < el) {
+                    el = point.getAltitude();
+                }
+            }
         }
-        return 0;
+        return (int) el;
     }
 
+    public static int getElevationHigh(ArrayList<Location> gpsTrack) {
+        double el = 0;
+
+        if (gpsTrack.size() > 0) {
+            el = gpsTrack.get(0).getAltitude();
+            for (Location point : gpsTrack) {
+                if (point.getAltitude() > el) {
+                    el = point.getAltitude();
+                }
+            }
+        }
+        return (int) el;
+    }
+
+    public static String getTimeString(ArrayList<Location> gpsTrack) {
+
+        NumberFormat timeFormat = new DecimalFormat("00");
+        long time = getTime(gpsTrack);
+
+        long hours = TimeUnit.MILLISECONDS.toHours(time);
+        time -= TimeUnit.HOURS.toMillis(hours);
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(time);
+        time -= TimeUnit.MINUTES.toMillis(minutes);
+        long seconds = TimeUnit.MILLISECONDS.toSeconds(time);
+        return timeFormat.format(hours) + ":" + timeFormat.format(minutes) + ":" + timeFormat.format(seconds);
+    }
+
+    public static String getTimeString(long time) {
+
+        NumberFormat timeFormat = new DecimalFormat("00");
+
+        long hours = TimeUnit.MILLISECONDS.toHours(time);
+        time -= TimeUnit.HOURS.toMillis(hours);
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(time);
+        time -= TimeUnit.MINUTES.toMillis(minutes);
+        long seconds = TimeUnit.MILLISECONDS.toSeconds(time);
+        return timeFormat.format(hours) + ":" + timeFormat.format(minutes) + ":" + timeFormat.format(seconds);
+    }
+
+    public static int getCaloriesBurned(int weight, long time, long pace) {
+        //Weight is in kilograms
+        long minutes = TimeUnit.MILLISECONDS.toMinutes(time);
+        double unit;
+        //TODO make it capable of being dynamic to support walking to Running
+
+        if (pace < 300000) {
+            unit = JOGMET / ((double) pace / 300000);
+        } else {
+            unit = JOGMET * (300000 / (double) pace);
+        }
+
+        //ensures that calories metric never dips too low or too high depending on speed
+        unit = unit > 26 ? 26 : unit;
+        unit = unit < 6 ? 6 : unit;
+
+        return (int) (((unit * 3.5 * weight) / 200) * minutes);
+    }
 
 }

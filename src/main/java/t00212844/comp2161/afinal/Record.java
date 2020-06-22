@@ -19,6 +19,7 @@ import android.os.PowerManager;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
 import android.text.InputType;
+import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.Chronometer;
 import android.widget.EditText;
@@ -56,7 +57,6 @@ import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -348,28 +348,27 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
             public void onTick(long millisUntilFinished) {
                 NumberFormat format;
                 double distance = AnalyzeActivity.getDistance(gpsTrack);
-                String distanceText = "";
+                String distanceText = AnalyzeActivity.getDistanceString(distance, false);
 
-                if (distance < 1000) {
-                    format = new DecimalFormat("##0");
-                    distanceText = format.format(distance) + " " + getString(R.string.meters);
-                    tvDistance.setText(distanceText);
-                } else if (distance >= 1000) {
-                    format = new DecimalFormat("0.00");
-                    distanceText = format.format(distance / 1000) + " " + getString(R.string.kilometers);
-                    tvDistance.setText(distanceText);
-                }
+                if (distance > 0) {
 
-                if (distance > 10) {
-                    format = new DecimalFormat("00");
-                    double pace = AnalyzeActivity.getOverallPace(gpsTrack);
-                    int min = (int) pace;
-                    int sec = (int) ((pace - min) * 60);
+                    if (distance < 1000) {
+                        distanceText += " " + getString(R.string.meters);
+                        tvDistance.setText(distanceText);
+                    } else if (distance >= 1000) {
+                        distanceText += " " + getString(R.string.kilometers);
+                        tvDistance.setText(distanceText);
+                    }
+
+                    format = new DecimalFormat("0");
+                    long pace = AnalyzeActivity.getOverallPace(gpsTrack);
                     TextView tvPace = findViewById(R.id.textView_Pace);
-                    tvPace.setText(format.format(min) + ":" + format.format(sec) + " min/km");
+                    //TODO set units to change
+                    //TODO make units smaller than rest of text
+                    String paceString = DateFormat.format("mm:ss", pace) + " min/km";
+                    tvPace.setText(paceString);
 
-                    tvCalories.setText(format.format(AnalyzeActivity.getCaloriesBurned(70,
-                            (int) (SystemClock.elapsedRealtime() - chronometer.getBase()) / 60000)));
+                    tvCalories.setText(format.format(AnalyzeActivity.getCaloriesBurned(70, AnalyzeActivity.getTime(gpsTrack), pace)));
                 }
 
                 //tts.speak("meters", TextToSpeech.QUEUE_FLUSH, null,"utterance-id");
@@ -436,7 +435,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
 
                 Intent intent = new Intent(view.getContext(), SingleRun.class);
                 Bundle bundle = new Bundle();
-                bundle.putSerializable("ARRAYLIST", (Serializable) gpsTrack);
+                bundle.putSerializable("ARRAYLIST", gpsTrack);
                 bundle.putString("runname", runName);
                 intent.putExtra("BUNDLE", bundle);
                 view.getContext().startActivity(intent);

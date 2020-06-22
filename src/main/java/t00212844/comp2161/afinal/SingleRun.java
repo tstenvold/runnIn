@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 public class SingleRun extends AppCompatActivity {
 
@@ -36,20 +35,23 @@ public class SingleRun extends AppCompatActivity {
     TextView distanceTextView;
     TextView timeTextView;
     TextView dateTextView;
-    TextView runNameTextView;
     TextView elgainTextView;
     TextView elmaxTextView;
     TextView elminTextView;
+    TextView calTextView;
     TextView paceTextView;
     TextView paceFastTextView;
+    MenuItem deleteItem;
+    MenuItem shareItem;
     private double distance;
     private String runName;
-    private double pace;
-    private double paceFast;
+    private long pace;
+    private long paceFast;
     private long time;
     private long elmax;
     private long elmin;
     private long elgain;
+    private int calories;
     private ArrayList<Location> gpsTrack;
 
     @Override
@@ -58,7 +60,7 @@ public class SingleRun extends AppCompatActivity {
         setContentView(R.layout.activity_single_run);
         File file = null;
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle(runName);
@@ -73,6 +75,7 @@ public class SingleRun extends AppCompatActivity {
         elminTextView = findViewById(R.id.runMinEl);
         paceTextView = findViewById(R.id.runPace);
         paceFastTextView = findViewById(R.id.runFastPace);
+        calTextView = findViewById(R.id.runCal);
 
         //TODO load from file path all the variables
         String filepath = getIntent().getStringExtra(getString(R.string.filepath));
@@ -100,7 +103,12 @@ public class SingleRun extends AppCompatActivity {
             distance = AnalyzeActivity.getDistance(gpsTrack);
             time = AnalyzeActivity.getTime(gpsTrack);
             pace = AnalyzeActivity.getOverallPace(gpsTrack);
+            paceFast = AnalyzeActivity.getFastestPace(gpsTrack);
             elgain = AnalyzeActivity.getElevationGain(gpsTrack);
+            elmax = AnalyzeActivity.getElevationHigh(gpsTrack);
+            elmin = AnalyzeActivity.getElevationLow(gpsTrack);
+            calories = AnalyzeActivity.getCaloriesBurned(70, time, pace);
+
         }
 
         assert file != null;
@@ -122,20 +130,16 @@ public class SingleRun extends AppCompatActivity {
 
         NumberFormat decimalFormat = new DecimalFormat("0.0");
         NumberFormat numberFormat = new DecimalFormat("0");
-        NumberFormat timeFormat = new DecimalFormat("00");
         distanceTextView.setText(numberFormat.format(distance));
 
-        long hours = TimeUnit.MILLISECONDS.toHours(time);
-        time -= TimeUnit.HOURS.toMillis(hours);
-        long minutes = TimeUnit.MILLISECONDS.toMinutes(time);
-        time -= TimeUnit.MINUTES.toMillis(minutes);
-        long seconds = TimeUnit.MILLISECONDS.toSeconds(time);
-        String timeString = timeFormat.format(hours) + ":" + timeFormat.format(minutes) + ":" + timeFormat.format(seconds);
-
-        timeTextView.setText(timeString);
+        timeTextView.setText(AnalyzeActivity.getTimeString(time));
         dateTextView.setText(DateFormat.format("dd/MM/yyyy HH:mm", gpsTrack.get(0).getTime()));
         elgainTextView.setText(numberFormat.format(elgain));
-
+        elmaxTextView.setText(numberFormat.format(elmax));
+        elminTextView.setText(numberFormat.format(elmin));
+        paceTextView.setText(DateFormat.format("mm:ss", pace));
+        paceFastTextView.setText(DateFormat.format("mm:ss", paceFast));
+        calTextView.setText(numberFormat.format(calories));
     }
 
     @Override

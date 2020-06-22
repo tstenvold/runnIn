@@ -119,8 +119,6 @@ public class ActivitiesFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_activities, container, false);
         Context context = view.getContext();
-        //final Context contextThemeWrapper = new ContextThemeWrapper(getActivity(), Objects.requireNonNull(context).getTheme());
-        //LayoutInflater localInflater = inflater.cloneInContext(contextThemeWrapper);
 
         RecyclerView sRView = view.findViewById(R.id.rv_activities);
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
