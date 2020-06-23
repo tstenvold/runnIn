@@ -151,10 +151,18 @@ public class GeoJsonHandler {
         }
         reader.endObject();
 
-        jsonprop.add(runName);
-        jsonprop.add(distance);
-        jsonprop.add(time);
-        jsonprop.add(pace);
+        if (!runName.equals("")) {
+            jsonprop.add(runName);
+        }
+        if (!distance.equals("")) {
+            jsonprop.add(distance);
+        }
+        if (!time.equals("")) {
+            jsonprop.add(time);
+        }
+        if (!pace.equals("")) {
+            jsonprop.add(pace);
+        }
 
         return jsonprop;
     }

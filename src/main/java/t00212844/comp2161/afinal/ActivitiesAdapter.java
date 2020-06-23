@@ -114,7 +114,7 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
             e.printStackTrace();
         }
 
-        if (jsonProp.size() > 0) {
+        if (jsonProp.size() == 4) {
             holder.activityName.setText(jsonProp.get(0));
             holder.date.setText(DateFormat.format("dd/MM/yyyy HH:mm", gpsTrack.get(0).getTime()));
             holder.time.setText(AnalyzeActivity.getTimeString(Long.parseLong(jsonProp.get(2).substring(0, jsonProp.get(2).length() - 2))));

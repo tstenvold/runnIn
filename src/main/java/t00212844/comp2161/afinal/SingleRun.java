@@ -1,13 +1,17 @@
 package t00212844.comp2161.afinal;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,6 +29,7 @@ import com.mapbox.geojson.Point;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -48,6 +53,10 @@ public class SingleRun extends AppCompatActivity {
     TextView paceFastTextView;
     MenuItem deleteItem;
     MenuItem shareItem;
+    GraphView graphel;
+    GraphView graphspeed;
+    Toolbar toolbar;
+
     private double distance;
     private String runName;
     private long pace;
@@ -67,7 +76,7 @@ public class SingleRun extends AppCompatActivity {
         setContentView(R.layout.activity_single_run);
         File file;
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
@@ -82,8 +91,8 @@ public class SingleRun extends AppCompatActivity {
         paceTextView = findViewById(R.id.runPace);
         paceFastTextView = findViewById(R.id.runFastPace);
         calTextView = findViewById(R.id.runCal);
-        GraphView graphel = (GraphView) findViewById(R.id.elgraph);
-        GraphView graphspeed = (GraphView) findViewById(R.id.speedgraph);
+        graphel = findViewById(R.id.elgraph);
+        graphspeed = findViewById(R.id.speedgraph);
 
         //TODO load from file path all the variables
         String filepath = getIntent().getStringExtra(getString(R.string.filepath));
@@ -107,9 +116,10 @@ public class SingleRun extends AppCompatActivity {
 
         }
 
-        if (jsonProp != null) {
+        if (jsonProp.size() == 4) {
             runName = jsonProp.get(0);
         }
+
         if (gpsTrack != null) {
             //TODO this probably needs to be handled Async
             distance = AnalyzeActivity.getDistanceInKm(gpsTrack);
@@ -162,6 +172,31 @@ public class SingleRun extends AppCompatActivity {
         if (item.getItemId() == android.R.id.home) {
             onBackPressed();
             return true;
+        } else if (item.getItemId() == R.id.action_share) {
+
+            Bitmap bitmap = getScreenshot(this.getWindow().getDecorView());
+            String path = getFilesDir() + "/RunOverview.png";
+
+            FileOutputStream outputStream = null;
+            try {
+                outputStream = new FileOutputStream(new File(path));
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+                outputStream.flush();
+                outputStream.close();
+                bitmap.recycle();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            Intent shareIntent = new Intent();
+            shareIntent.setAction(Intent.ACTION_SEND);
+            shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(path));
+            shareIntent.setType("image/*");
+            shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Look at My Latest Run!");
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(shareIntent, "Share Image"));
+
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -169,6 +204,8 @@ public class SingleRun extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.single_run_menu, menu);
+        deleteItem = menu.findItem(R.id.action_delete);
+        shareItem = menu.findItem(R.id.action_share);
         return true;
     }
 
@@ -255,4 +292,30 @@ public class SingleRun extends AppCompatActivity {
         }
     }
 
+    private Bitmap getScreenshot(View view) {
+
+        View screenView = view.findViewById(R.id.fullview);
+
+        graphel.setVisibility(View.INVISIBLE);
+        graphspeed.setVisibility(View.INVISIBLE);
+        deleteItem.setVisible(false);
+        shareItem.setVisible(false);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(false);
+        screenView.setBackgroundColor(getColor(R.color.colorAccent));
+        ScrollView scroll = view.findViewById(R.id.runScroll);
+        scroll.scrollTo(0, 0);
+
+        screenView.setDrawingCacheEnabled(true);
+        Bitmap bitmap = Bitmap.createBitmap(screenView.getDrawingCache());
+        screenView.setDrawingCacheEnabled(false);
+
+        graphel.setVisibility(View.VISIBLE);
+        graphspeed.setVisibility(View.VISIBLE);
+        deleteItem.setVisible(true);
+        shareItem.setVisible(true);
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        screenView.setBackgroundColor(getColor(android.R.color.transparent));
+
+        return bitmap;
+    }
 }
