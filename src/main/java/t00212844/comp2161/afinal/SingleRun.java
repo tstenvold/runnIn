@@ -13,6 +13,11 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.anychart.AnyChart;
+import com.anychart.AnyChartView;
+import com.anychart.chart.common.dataentry.DataEntry;
+import com.anychart.chart.common.dataentry.ValueDataEntry;
+import com.anychart.charts.Cartesian;
 import com.mapbox.api.staticmap.v1.MapboxStaticMap;
 import com.mapbox.api.staticmap.v1.StaticMapCriteria;
 import com.mapbox.geojson.LineString;
@@ -130,7 +135,7 @@ public class SingleRun extends AppCompatActivity {
             avatarView.setImageBitmap(avaBitmap);
         }
 
-        NumberFormat decimalFormat = new DecimalFormat("0.0");
+        NumberFormat decimalFormat = new DecimalFormat("0.00");
         NumberFormat numberFormat = new DecimalFormat("0");
         distanceTextView.setText(numberFormat.format(distance));
 
@@ -144,6 +149,21 @@ public class SingleRun extends AppCompatActivity {
         calTextView.setText(numberFormat.format(calories));
 
         getSupportActionBar().setTitle(runName);
+
+        Cartesian line = AnyChart.line();
+
+        List<DataEntry> data = new ArrayList<>();
+        for (Location point : gpsTrack) {
+            double distance = AnalyzeActivity.getDistancetoLocation(point, gpsTrack);
+            distance = AnalyzeActivity.roundToFraction(distance, 4);
+            data.add(new ValueDataEntry(decimalFormat.format(distance), (int) point.getAltitude()));
+        }
+        line.data(data);
+        line.credits(false);
+        line.yScale().maximum(elmax + 5);
+        line.yScale().minimum(elmin - 5);
+        AnyChartView anyChartView = findViewById(R.id.any_chart_view);
+        anyChartView.setChart(line);
     }
 
     @Override

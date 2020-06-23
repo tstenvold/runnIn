@@ -248,4 +248,26 @@ public class AnalyzeActivity {
         return (int) (((unit * 3.5 * weight) / 200) * minutes);
     }
 
+    /**
+     * Determines the distance in kilometers from the start to the point given.
+     * mostly used for charts.
+     *
+     * @param point    the current position
+     * @param gpsTrack the gps points
+     * @return distance in km from start to Point
+     */
+    public static double getDistancetoLocation(Location point, ArrayList<Location> gpsTrack) {
+        double distance = 0;
+        for (int i = 0; i < gpsTrack.size() - 2; i++) {
+            if (gpsTrack.get(i) == point) {
+                break;
+            }
+            distance += gpsTrack.get(i).distanceTo(gpsTrack.get(i + 1));
+        }
+        return distance / 1000;
+    }
+
+    public static double roundToFraction(double x, long fraction) {
+        return (double) Math.round(x * fraction) / fraction;
+    }
 }

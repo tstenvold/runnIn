@@ -135,17 +135,18 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
             @Override
             public void onClick(View view) {
                 //Move back to previous location
-                Location lastKnownLocation = mapboxMap.getLocationComponent().getLastKnownLocation();
-                if (lastKnownLocation != null) {
-                    CameraPosition position = new CameraPosition.Builder()
-                            .target(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()))
-                            .zoom(DEFAULT_ZOOM)
-                            .bearing(0)
-                            .build();
+                if (mapboxMap.getLocationComponent().isLocationComponentActivated()) {
+                    Location lastKnownLocation = mapboxMap.getLocationComponent().getLastKnownLocation();
+                    if (lastKnownLocation != null) {
+                        CameraPosition position = new CameraPosition.Builder()
+                                .target(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()))
+                                .zoom(DEFAULT_ZOOM)
+                                .bearing(0)
+                                .build();
 
-                    mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), ANIMATION_SHORT);
+                        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), ANIMATION_SHORT);
+                    }
                 }
-
             }
         });
 
@@ -362,7 +363,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                     TextView tvPace = findViewById(R.id.textView_Pace);
                     //TODO set units to change
                     //TODO make units smaller than rest of text
-                    String paceString = DateFormat.format("mm:ss", pace) + " min/km";
+                    String paceString = DateFormat.format("mm:ss", pace) + " /km";
                     tvPace.setText(paceString);
 
                     tvCalories.setText(format.format(AnalyzeActivity.getCaloriesBurned(70, AnalyzeActivity.getTime(gpsTrack), pace)));
