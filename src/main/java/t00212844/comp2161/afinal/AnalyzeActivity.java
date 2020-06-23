@@ -16,16 +16,17 @@ public class AnalyzeActivity {
     private static final double KMTOMIL = 1.609344;
     private static final double MTOYD = 1.09361;
     private static final double MPSTOMINKM = 16.6666667;
+    private static final double MPSTOKMH = 3.6;
 
     public static double getDistance(ArrayList<Location> gpsTrack) {
         double distance = 0;
         int index = 0;
         Location cur;
         if (gpsTrack.size() > 1) {
-            cur = gpsTrack.get(index++);
+            cur = gpsTrack.get(index);
             while (index < gpsTrack.size() - 1) {
-                float dis = cur.distanceTo(gpsTrack.get(index));
-                cur = gpsTrack.get(index++);
+                float dis = cur.distanceTo(gpsTrack.get(++index));
+                cur = gpsTrack.get(index);
                 distance += dis;
             }
         }
@@ -91,6 +92,20 @@ public class AnalyzeActivity {
             el = (int) loc.getAltitude();
         }
         return el;
+    }
+
+    public static double getSpeed(Location loc1, Location loc2) {
+
+        ArrayList<Location> gpsTrack = new ArrayList<>();
+        gpsTrack.add(loc1);
+        gpsTrack.add(loc2);
+
+        double distance = getDistance(gpsTrack);
+        double time = getTime(gpsTrack);
+
+        double mps = distance / (time / 1000);
+
+        return mps * MPSTOKMH;
     }
 
     public static double getLastKMSpeed(ArrayList<Location> gpsTrack) {
@@ -267,6 +282,13 @@ public class AnalyzeActivity {
         return distance / 1000;
     }
 
+    /**
+     * Method provided by Peter Lawery @ https://stackoverflow.com/questions/23449662/java-round-to-nearest-5
+     *
+     * @param x        the number to be rounded
+     * @param fraction the fraction by which to round the number
+     * @return The rounded double
+     */
     public static double roundToFraction(double x, long fraction) {
         return (double) Math.round(x * fraction) / fraction;
     }

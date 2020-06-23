@@ -13,11 +13,11 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import com.anychart.AnyChart;
-import com.anychart.AnyChartView;
-import com.anychart.chart.common.dataentry.DataEntry;
-import com.anychart.chart.common.dataentry.ValueDataEntry;
-import com.anychart.charts.Cartesian;
+import com.jjoe64.graphview.DefaultLabelFormatter;
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GridLabelRenderer;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 import com.mapbox.api.staticmap.v1.MapboxStaticMap;
 import com.mapbox.api.staticmap.v1.StaticMapCriteria;
 import com.mapbox.geojson.LineString;
@@ -59,6 +59,7 @@ public class SingleRun extends AppCompatActivity {
     private int calories;
     private ArrayList<Location> gpsTrack;
     private ArrayList<String> jsonProp;
+    private int lineGraphSpace = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +82,8 @@ public class SingleRun extends AppCompatActivity {
         paceTextView = findViewById(R.id.runPace);
         paceFastTextView = findViewById(R.id.runFastPace);
         calTextView = findViewById(R.id.runCal);
+        GraphView graphel = (GraphView) findViewById(R.id.elgraph);
+        GraphView graphspeed = (GraphView) findViewById(R.id.speedgraph);
 
         //TODO load from file path all the variables
         String filepath = getIntent().getStringExtra(getString(R.string.filepath));
@@ -109,7 +112,7 @@ public class SingleRun extends AppCompatActivity {
         }
         if (gpsTrack != null) {
             //TODO this probably needs to be handled Async
-            distance = AnalyzeActivity.getDistance(gpsTrack);
+            distance = AnalyzeActivity.getDistanceInKm(gpsTrack);
             time = AnalyzeActivity.getTime(gpsTrack);
             pace = AnalyzeActivity.getOverallPace(gpsTrack);
             paceFast = AnalyzeActivity.getFastestPace(gpsTrack);
@@ -137,7 +140,7 @@ public class SingleRun extends AppCompatActivity {
 
         NumberFormat decimalFormat = new DecimalFormat("0.00");
         NumberFormat numberFormat = new DecimalFormat("0");
-        distanceTextView.setText(numberFormat.format(distance));
+        distanceTextView.setText(decimalFormat.format(distance));
 
         timeTextView.setText(AnalyzeActivity.getTimeString(time));
         dateTextView.setText(DateFormat.format("dd/MM/yyyy HH:mm", gpsTrack.get(0).getTime()));
@@ -148,22 +151,10 @@ public class SingleRun extends AppCompatActivity {
         paceFastTextView.setText(DateFormat.format("mm:ss", paceFast));
         calTextView.setText(numberFormat.format(calories));
 
+
         getSupportActionBar().setTitle(runName);
-
-        Cartesian line = AnyChart.line();
-
-        List<DataEntry> data = new ArrayList<>();
-        for (Location point : gpsTrack) {
-            double distance = AnalyzeActivity.getDistancetoLocation(point, gpsTrack);
-            distance = AnalyzeActivity.roundToFraction(distance, 4);
-            data.add(new ValueDataEntry(decimalFormat.format(distance), (int) point.getAltitude()));
-        }
-        line.data(data);
-        line.credits(false);
-        line.yScale().maximum(elmax + 5);
-        line.yScale().minimum(elmin - 5);
-        AnyChartView anyChartView = findViewById(R.id.any_chart_view);
-        anyChartView.setChart(line);
+        drawGraph(graphel, 0);
+        drawGraph(graphspeed, 1);
     }
 
     @Override
@@ -210,6 +201,57 @@ public class SingleRun extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private void drawGraph(GraphView graph, int type) {
+        LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
+        for (Location point : gpsTrack) {
+            if (type == 0) {
+                double distancetoLocation = AnalyzeActivity.getDistancetoLocation(point, gpsTrack);
+                series.appendData(new DataPoint(distancetoLocation, (int) point.getAltitude()), true, gpsTrack.size() - 1);
+            } else if (type == 1) {
+                int index = gpsTrack.indexOf(point);
+                if (index < gpsTrack.size() - 2 && index > 0) {
+                    double distancetoLocation = AnalyzeActivity.getDistancetoLocation(point, gpsTrack);
+                    double speed = AnalyzeActivity.getSpeed(gpsTrack.get(index - 1), point);
+                    series.appendData(new DataPoint(distancetoLocation, speed), true, gpsTrack.size() - 1);
+                }
+            }
+        }
+        series.setColor(getColor(R.color.lineColor));
+
+        graph.addSeries(series);
+        graph.getGridLabelRenderer().setGridStyle(GridLabelRenderer.GridStyle.NONE);
+        graph.getViewport().setDrawBorder(true);
+        graph.setTitleColor(getColor(R.color.colorPrimaryDark));
+        graph.setTitleTextSize(48f);
+        graph.getGridLabelRenderer().setLabelVerticalWidth(128);
+
+        if (type == 0) {
+            graph.setTitle(getString(R.string.elevation));
+            graph.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter() {
+                @Override
+                public String formatLabel(double value, boolean isValueX) {
+                    if (isValueX) {
+                        return super.formatLabel(value, isValueX) + " km";
+                    } else {
+                        return super.formatLabel(value, isValueX) + " m";
+                    }
+                }
+            });
+        } else if (type == 1) {
+            graph.setTitle(getString(R.string.speed));
+            graph.getGridLabelRenderer().setLabelFormatter(new DefaultLabelFormatter() {
+                @Override
+                public String formatLabel(double value, boolean isValueX) {
+                    if (isValueX) {
+                        return super.formatLabel(value, isValueX) + " km";
+                    } else {
+                        return super.formatLabel(value, isValueX) + " km/h";
+                    }
+                }
+            });
         }
     }
 

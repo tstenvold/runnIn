@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.location.Location;
+import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +27,8 @@ import com.squareup.picasso.Target;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -99,19 +103,22 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
         Context context = holder.itemView.getContext();
         File file = jsonFiles.get(position);
         ArrayList<String> jsonProp = new ArrayList<>();
+        ArrayList<Location> gpsTrack = new ArrayList<>();
         SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyy HH:mm", Locale.CANADA);
+        NumberFormat decimalFormat = new DecimalFormat("0.00");
 
         try {
             jsonProp = GeoJsonHandler.readJsonProperties(file);
+            gpsTrack = GeoJsonHandler.readJson(file);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         if (jsonProp.size() > 0) {
             holder.activityName.setText(jsonProp.get(0));
-            holder.date.setText(format.format(file.lastModified()));
-            holder.time.setText(jsonProp.get(2));
-            holder.distance.setText(jsonProp.get(1));
+            holder.date.setText(DateFormat.format("dd/MM/yyyy HH:mm", gpsTrack.get(0).getTime()));
+            holder.time.setText(AnalyzeActivity.getTimeString(Long.parseLong(jsonProp.get(2).substring(0, jsonProp.get(2).length() - 2))));
+            holder.distance.setText(decimalFormat.format(Double.parseDouble(jsonProp.get(1)) / 1000));
         }
 
         File png = new File(context.getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
