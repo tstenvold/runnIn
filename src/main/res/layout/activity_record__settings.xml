@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Record_Settings">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/settingsToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorAccent"
+        android:minHeight="?attr/actionBarSize"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:id="@+id/divider13"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintBottom_toBottomOf="@+id/divider11"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/divider11"
+        app:layout_constraintVertical_bias="0.65999997" />
+
+    <View
+        android:id="@+id/divider12"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintBottom_toBottomOf="@+id/divider11"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/settingsToolbar"
+        app:layout_constraintVertical_bias="0.32999998" />
+
+    <View
+        android:id="@+id/divider11"
+        android:layout_width="1dp"
+        android:layout_height="0dp"
+        android:background="?android:attr/listDivider"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/settingsToolbar" />
+
+    <Button
+        android:id="@+id/btnGpsAcc"
+        style="@android:style/Widget.Button"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/ripple_effect"
+        android:hapticFeedbackEnabled="true"
+        android:onClick="changeGPSAcc"
+        android:text="@string/gpsacc"
+        app:layout_constraintBottom_toTopOf="@+id/divider12"
+        app:layout_constraintEnd_toStartOf="@+id/divider11"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/settingsToolbar" />
+
+    <Button
+        android:id="@+id/btnVoicecmd"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/ripple_effect"
+        android:hapticFeedbackEnabled="true"
+        android:onClick="changeVoiceCmd"
+        android:text="@string/voicecmd"
+        app:layout_constraintBottom_toTopOf="@+id/divider12"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/divider11"
+        app:layout_constraintTop_toBottomOf="@+id/settingsToolbar"
+        app:layout_constraintVertical_bias="0.512" />
+
+    <Button
+        android:id="@+id/btnScreenOn"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/ripple_effect"
+        android:hapticFeedbackEnabled="true"
+        android:onClick="setScreenPref"
+        android:text="@string/scron"
+        app:layout_constraintBottom_toTopOf="@+id/divider13"
+        app:layout_constraintEnd_toStartOf="@+id/divider11"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/divider12"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <ImageView
+        android:id="@+id/gpsImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:contentDescription="@string/gps"
+        android:elevation="1dp"
+        app:layout_constraintEnd_toEndOf="@+id/btnGpsAcc"
+        app:layout_constraintStart_toStartOf="@+id/btnGpsAcc"
+        app:layout_constraintTop_toTopOf="@+id/btnGpsAcc"
+        app:srcCompat="@drawable/gps_fixed_24px" />
+
+    <ImageView
+        android:id="@+id/voiceImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:contentDescription="@string/voicecmd"
+        android:elevation="1dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnGpsAcc"
+        app:layout_constraintTop_toTopOf="@+id/btnVoicecmd"
+        app:srcCompat="@drawable/record_voice_over_24px" />
+
+    <ImageView
+        android:id="@+id/screenImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:contentDescription="@string/scron"
+        android:elevation="1dp"
+        app:layout_constraintEnd_toEndOf="@+id/btnScreenOn"
+        app:layout_constraintStart_toStartOf="@+id/btnScreenOn"
+        app:layout_constraintTop_toTopOf="@+id/btnScreenOn"
+        app:srcCompat="@drawable/stay_primary_portrait_24px" />
+
+    <TextView
+        android:id="@+id/gpsSettingText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/auto"
+        app:layout_constraintBottom_toBottomOf="@+id/btnGpsAcc"
+        app:layout_constraintEnd_toEndOf="@+id/btnGpsAcc"
+        app:layout_constraintStart_toStartOf="@+id/btnGpsAcc"
+        app:layout_constraintTop_toTopOf="@+id/btnGpsAcc"
+        app:layout_constraintVertical_bias="0.75" />
+
+    <TextView
+        android:id="@+id/screenSettingsText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/sysdefault"
+        app:layout_constraintBottom_toBottomOf="@+id/btnScreenOn"
+        app:layout_constraintEnd_toEndOf="@+id/btnScreenOn"
+        app:layout_constraintStart_toStartOf="@+id/btnScreenOn"
+        app:layout_constraintTop_toBottomOf="@+id/btnGpsAcc"
+        app:layout_constraintVertical_bias="0.75" />
+
+    <TextView
+        android:id="@+id/voiceSettingsText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/off"
+        app:layout_constraintBottom_toBottomOf="@+id/btnVoicecmd"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnGpsAcc"
+        app:layout_constraintTop_toTopOf="@+id/btnVoicecmd"
+        app:layout_constraintVertical_bias="0.75" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

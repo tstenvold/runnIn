@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.FileProvider;
 
 import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
@@ -116,7 +118,7 @@ public class SingleRun extends AppCompatActivity {
 
         }
 
-        if (jsonProp.size() == 4) {
+        if (jsonProp != null && jsonProp.size() == 4) {
             runName = jsonProp.get(0);
         }
 
@@ -165,6 +167,7 @@ public class SingleRun extends AppCompatActivity {
         getSupportActionBar().setTitle(runName);
         drawGraph(graphel, 0);
         drawGraph(graphspeed, 1);
+
     }
 
     @Override
@@ -175,12 +178,13 @@ public class SingleRun extends AppCompatActivity {
         } else if (item.getItemId() == R.id.action_share) {
 
             Bitmap bitmap = getScreenshot(this.getWindow().getDecorView());
-            String path = getFilesDir() + "/RunOverview.png";
+            String path = Environment.getExternalStorageDirectory().toString() + "/RunOverview.jpeg";
+            File file = new File(path);
 
             FileOutputStream outputStream = null;
             try {
-                outputStream = new FileOutputStream(new File(path));
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+                outputStream = new FileOutputStream(file);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
                 outputStream.flush();
                 outputStream.close();
                 bitmap.recycle();
@@ -190,11 +194,12 @@ public class SingleRun extends AppCompatActivity {
 
             Intent shareIntent = new Intent();
             shareIntent.setAction(Intent.ACTION_SEND);
-            shareIntent.putExtra(Intent.EXTRA_STREAM, Uri.parse(path));
-            shareIntent.setType("image/*");
-            shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Look at My Latest Run!");
             shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            startActivity(Intent.createChooser(shareIntent, "Share Image"));
+            Uri uri = FileProvider.getUriForFile(SingleRun.this, BuildConfig.APPLICATION_ID + ".provider", file);
+            shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+            shareIntent.setType("image/jpg");
+            shareIntent.putExtra(android.content.Intent.EXTRA_TEXT, "Check out at my recent run");
+            startActivity(Intent.createChooser(shareIntent, null));
 
             return true;
         }
@@ -225,7 +230,8 @@ public class SingleRun extends AppCompatActivity {
                         .styleId(StaticMapCriteria.STREET_STYLE)
                         //Loads the map center on the middle point of run. Crude but should be ok
                         .cameraPoint(pointMid)
-                        .cameraZoom(14)
+                        .cameraAuto(true)
+                        .retina(true)
                         .width(720) // Image width
                         .height(720) // Image height
                         .geoJson(lineString)

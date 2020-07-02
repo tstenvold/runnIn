@@ -60,6 +60,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineCap;
@@ -403,15 +404,15 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
 
     private void endRun(View view) {
         final String[] userRunName = new String[1];
-        String runName = "Evening Run"; //TODO time of day welcome / Name of Run
+        String runName = generateRunName();
 
         AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
-        builder.setTitle("Please Name the Run");
+        builder.setTitle(getString(R.string.enterrunname));
         final EditText input = new EditText(view.getContext());
         input.setInputType(InputType.TYPE_CLASS_TEXT);
         input.setHint(runName);
         builder.setView(input);
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 if (input.getText().toString().equals("")) {
@@ -434,12 +435,35 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                 Intent intent = new Intent(view.getContext(), SingleRun.class);
                 Bundle bundle = new Bundle();
                 bundle.putSerializable("ARRAYLIST", gpsTrack);
-                bundle.putString("runname", runName);
+                bundle.putString("runname", userRunName[0]);
                 intent.putExtra("BUNDLE", bundle);
                 view.getContext().startActivity(intent);
                 finish();
             }
         });
         builder.show();
+    }
+
+    private String generateRunName() {
+        String runName = "";
+
+        int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        if (hour >= 6 && hour < 12) {
+            runName = getString(R.string.morningrun);
+        } else if (hour >= 12 && hour < 16) {
+            runName = getString(R.string.afternoonrun);
+        } else if (hour >= 16 && hour < 21) {
+            runName = getString(R.string.eveningrun);
+        } else if (hour >= 21) {
+            runName = getString(R.string.laterun);
+        } else if (hour > 0 && hour < 6) {
+            runName = getString(R.string.earlyrun);
+        }
+        return runName;
+    }
+
+    public void openSettings(View view) {
+        Intent intent = new Intent(view.getContext(), Record_Settings.class);
+        view.getContext().startActivity(intent);
     }
 }

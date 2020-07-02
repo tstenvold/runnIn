@@ -146,12 +146,12 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
                         Point pointMid = AnalyzeActivity.calculateMidpointMapImage(points);
                         MapboxStaticMap staticImage = MapboxStaticMap.builder()
                                 .accessToken(context.getString(R.string.access_token))
-                                .styleId(StaticMapCriteria.STREET_STYLE)
-                                //Loads the map center on the middle point of run. Crude but should be ok
-                                .cameraPoint(pointMid)
-                                .cameraZoom(DEFAULT_ZOOM)
+                                .styleId(StaticMapCriteria.OUTDOORS_STYLE)
+                                .cameraAuto(true)
+                                .retina(true)
+                                .attribution(false)
                                 .width(720) // Image width
-                                .height(720) // Image height
+                                .height(640) // Image height
                                 .geoJson(lineString)
                                 .build();
 
@@ -182,6 +182,7 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
         public final TextView distance;
         public final ImageView mapView;
         public final ImageView avatar;
+
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);

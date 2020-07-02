@@ -15,6 +15,7 @@
         android:minHeight="?attr/actionBarSize"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        android:background="@color/colorAccent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -94,7 +95,7 @@
             <ImageView
                 android:id="@+id/runMap"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="350dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="4dp"
                 android:layout_marginEnd="8dp"

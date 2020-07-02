@@ -19,6 +19,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
@@ -158,10 +159,14 @@ public class UserInfo extends Fragment {
                 FileOutputStream baos = null;
 
                 try {
-                    ims = getContext().getContentResolver().openInputStream(avatarpath);
+                    ims = requireContext().getContentResolver().openInputStream(avatarpath);
                     Bitmap bmpImage = BitmapFactory.decodeStream(ims);
-                    baos = new FileOutputStream(getContext().getFilesDir() + "/" + getString(R.string.avatarpath));
-                    bmpImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                    baos = new FileOutputStream(requireContext().getFilesDir() + "/" + getString(R.string.avatarpath));
+                    if (bmpImage == null) {
+                        Toast.makeText(getContext(), getString(R.string.invalidImage), Toast.LENGTH_SHORT).show();
+                    } else {
+                        bmpImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                    }
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }

@@ -11,7 +11,8 @@
     <string name="yards">y</string>
     <string name="kilometers">km</string>
     <string name="miles">mil</string>
-    <string name="elevation">Elevation Gain</string>
+    <string name="elevation">Elevation</string>
+    <string name="elgain">Elevation Gain</string>
     <string name="location">tbd</string>
     <string name="access_token">pk.eyJ1IjoidHN0ZW52b2xkIiwiYSI6ImNrYjZxZW1zbjAxNjAycm9iNjZ2MnhneTkifQ.Pm56qnLeN1A5jnl6a61X5g</string>
     <string name="logo">runnIN Logo</string>
@@ -61,7 +62,7 @@
     <string name="time">time</string>
     <string name="gps">gps</string>
     <string name="isRunning">isrunning</string>
-    <string name="curitem">currentitem</string>
+    <string name="curitem">current item</string>
     <string name="filepath">filepath</string>
     <string name="avatarpath">avatar.png</string>
     <string name="resume">Resume</string>
@@ -74,6 +75,26 @@
     <string name="maxel">Max Elevation</string>
     <string name="icon">icon</string>
     <string name="speed">Speed</string>
+    <string name="invalidImage">Image selected is not valid</string>
+
+    <string name="morningrun" type="id">Morning Run</string>
+    <string name="afternoonrun" type="id">Afternoon Run</string>
+    <string name="eveningrun" type="id">Evening Run</string>
+    <string name="laterun" type="id">Late Night Run</string>
+    <string name="earlyrun" type="id">Early Bird Run</string>
+    <string name="enterrunname">Please enter a name for the run</string>
+    <string name="voicecmd">Voice Commands</string>
+    <string name="scron">Screen</string>
+    <string name="gpsacc">GPS Accuracy</string>
+    <string name="alwayson">Always On</string>
+    <string name="sysdefault">System Default</string>
+    <string name="auto">Auto</string>
+    <string name="off">Off</string>
+    <string name="min">Minimum</string>
+    <string name="detailed">Detailed</string>
+    <string name="low">Low</string>
+    <string name="medium">Medium</string>
+    <string name="high">High</string>
 
 
 </resources>
