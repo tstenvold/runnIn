@@ -163,7 +163,6 @@ public class SingleRun extends AppCompatActivity {
         paceFastTextView.setText(DateFormat.format("mm:ss", paceFast));
         calTextView.setText(numberFormat.format(calories));
 
-
         getSupportActionBar().setTitle(runName);
         drawGraph(graphel, 0);
         drawGraph(graphspeed, 1);

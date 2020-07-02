@@ -7,16 +7,20 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.text.InputType;
 import android.text.format.DateFormat;
@@ -243,12 +247,41 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
 
     @SuppressLint("MissingPermission") //permission check handled
     private void requestLocation() {
-        Criteria criteria = new Criteria();
-        criteria.setAccuracy(Criteria.ACCURACY_FINE);
-        criteria.setPowerRequirement(Criteria.POWER_HIGH);
-        String provider = locationManager.getBestProvider(criteria, true);
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        String provider = "";
+        int gps = pref.getInt(getString(R.string.gpsacc), 0);
+        //GPS accuracy Auto
+        if (gps == 0) {
+            float battery = getBatteryPercentage();
+            if (battery > 65) {
+                gps = 3;
+            } else if (battery > 40) {
+                gps = 2;
+            } else {
+                gps = 1;
+            }
+        }
+
         if (ActivityCompat.checkSelfPermission(getBaseContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locationManager.requestLocationUpdates(provider, 15000, 30, this);
+            Criteria criteria = new Criteria();
+            criteria.setAccuracy(Criteria.ACCURACY_FINE);
+            switch (gps) {
+                case 1:
+                    criteria.setPowerRequirement(Criteria.POWER_LOW);
+                    provider = locationManager.getBestProvider(criteria, true);
+                    locationManager.requestLocationUpdates(provider, 25000, 30, this);
+                    break;
+                case 2:
+                    criteria.setPowerRequirement(Criteria.POWER_MEDIUM);
+                    provider = locationManager.getBestProvider(criteria, true);
+                    locationManager.requestLocationUpdates(provider, 12000, 15, this);
+                    break;
+                case 3:
+                    criteria.setPowerRequirement(Criteria.POWER_HIGH);
+                    provider = locationManager.getBestProvider(criteria, true);
+                    locationManager.requestLocationUpdates(provider, 5000, 5, this);
+                    break;
+            }
         } else {
             requestLocationPermission();
         }
@@ -279,7 +312,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         chronometer.setBase(SystemClock.elapsedRealtime() + pausedTime);
         requestLocation();
         chronometer.start();
-        runBackgroundCalculations(30000);
+        runBackgroundCalculations(5000);
 
     }
 
@@ -379,7 +412,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
 
             @Override
             public void onFinish() {
-                runBackgroundCalculations(30000);
+                runBackgroundCalculations(5000);
             }
         }.start();
     }
@@ -405,43 +438,48 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     private void endRun(View view) {
         final String[] userRunName = new String[1];
         String runName = generateRunName();
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
-        builder.setTitle(getString(R.string.enterrunname));
-        final EditText input = new EditText(view.getContext());
-        input.setInputType(InputType.TYPE_CLASS_TEXT);
-        input.setHint(runName);
-        builder.setView(input);
-        builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (input.getText().toString().equals("")) {
-                    userRunName[0] = runName;
-                } else {
-                    userRunName[0] = input.getText().toString();
-                }
-                final Handler handler = new Handler();
-                Runnable runnable = new Runnable() {
-                    public void run() {
-                        try {
-                            GeoJsonHandler.writeJson(view.getContext(), gpsTrack, userRunName[0]);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+        if (AnalyzeActivity.getDistanceInKm(gpsTrack) < 0.5) {
+            Toast.makeText(getBaseContext(), "Run is not long enough to save", Toast.LENGTH_LONG).show();
+            finish();
+        } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+            builder.setTitle(getString(R.string.enterrunname));
+            final EditText input = new EditText(view.getContext());
+            input.setInputType(InputType.TYPE_CLASS_TEXT);
+            input.setHint(runName);
+            builder.setView(input);
+            builder.setCancelable(true);
+            builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    if (input.getText().toString().equals("")) {
+                        userRunName[0] = runName;
+                    } else {
+                        userRunName[0] = input.getText().toString();
                     }
-                };
-                runnable.run();
+                    final Handler handler = new Handler();
+                    Runnable runnable = new Runnable() {
+                        public void run() {
+                            try {
+                                GeoJsonHandler.writeJson(view.getContext(), gpsTrack, userRunName[0]);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    };
+                    runnable.run();
 
-                Intent intent = new Intent(view.getContext(), SingleRun.class);
-                Bundle bundle = new Bundle();
-                bundle.putSerializable("ARRAYLIST", gpsTrack);
-                bundle.putString("runname", userRunName[0]);
-                intent.putExtra("BUNDLE", bundle);
-                view.getContext().startActivity(intent);
-                finish();
-            }
-        });
-        builder.show();
+                    Intent intent = new Intent(view.getContext(), SingleRun.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putSerializable("ARRAYLIST", gpsTrack);
+                    bundle.putString("runname", userRunName[0]);
+                    intent.putExtra("BUNDLE", bundle);
+                    view.getContext().startActivity(intent);
+                    finish();
+                }
+            });
+            builder.show();
+        }
     }
 
     private String generateRunName() {
@@ -465,5 +503,25 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     public void openSettings(View view) {
         Intent intent = new Intent(view.getContext(), Record_Settings.class);
         view.getContext().startActivity(intent);
+    }
+
+    public float getBatteryPercentage() {
+
+        IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent batteryStatus = getApplicationContext().registerReceiver(null, ifilter);
+
+        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+
+        return level * 100 / (float) scale;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (isRunning || resume.getVisibility() == View.VISIBLE) {
+            Toast.makeText(getBaseContext(), "Please End Run to Exit", Toast.LENGTH_SHORT).show();
+        } else {
+            finish();
+        }
     }
 }

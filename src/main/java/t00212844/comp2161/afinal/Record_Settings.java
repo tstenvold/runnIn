@@ -41,40 +41,30 @@ public class Record_Settings extends AppCompatActivity {
         gps = pref.getInt(getString(R.string.gpsacc), 0);
         screen = pref.getBoolean(getString(R.string.scron), false);
 
+        setScreenPref(screen);
+        changeGPSAcc(gps);
+        changeVoiceCmd(voice);
+
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // handle arrow click here
         if (item.getItemId() == android.R.id.home) {
-            finish(); // close this activity and return to preview activity (if there is any)
+            finish();
         }
-
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 
-
-    public void setScreenPref(View view) {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        SharedPreferences.Editor editor = pref.edit();
-        if (screen) {
+    public void setScreenPref(boolean value) {
+        if (value) {
             screenText.setText(getString(R.string.sysdefault));
-            screen = false;
         } else {
             screenText.setText(getString(R.string.alwayson));
-            screen = true;
         }
-        editor.putBoolean(getString(R.string.scron), screen);
-        editor.apply();
     }
 
-    public void changeVoiceCmd(View view) {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        SharedPreferences.Editor editor = pref.edit();
-        if (++voice > 2) {
-            voice = 0;
-        }
-        switch (voice) {
+    public void changeVoiceCmd(int value) {
+        switch (value) {
             case 0:
                 voiceText.setText(getString(R.string.off));
                 break;
@@ -86,19 +76,12 @@ public class Record_Settings extends AppCompatActivity {
                 break;
 
         }
-        editor.putInt(getString(R.string.voicecmd), voice);
-        editor.apply();
     }
 
-    public void changeGPSAcc(View view) {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        SharedPreferences.Editor editor = pref.edit();
-        if (++gps > 4) {
-            gps = 0;
-        }
-        switch (gps) {
+    public void changeGPSAcc(int value) {
+        switch (value) {
             case 0:
-                gpsText.setText(getString(R.string.off));
+                gpsText.setText(getString(R.string.auto));
                 break;
             case 1:
                 gpsText.setText(getString(R.string.low));
@@ -109,12 +92,41 @@ public class Record_Settings extends AppCompatActivity {
             case 3:
                 gpsText.setText(getString(R.string.high));
                 break;
-            case 4:
-                gpsText.setText(getString(R.string.auto));
-                break;
-
         }
-        editor.putInt(getString(R.string.gpsacc), gps);
+    }
+
+    public void setScreenPref(View view) {
+
+        screen = !screen;
+        setScreenPref(screen);
+        setSettings(getString(R.string.scron), screen);
+    }
+
+    public void changeVoiceCmd(View view) {
+
+        if (++voice > 2) {
+            voice = 0;
+        }
+        changeVoiceCmd(voice);
+        setSettings(getString(R.string.voicecmd), voice);
+    }
+
+    public void changeGPSAcc(View view) {
+        if (++gps > 3) {
+            gps = 0;
+        }
+        changeGPSAcc(gps);
+        setSettings(getString(R.string.gpsacc), gps);
+    }
+
+    public void setSettings(String key, Object value) {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences.Editor editor = pref.edit();
+        if (value instanceof Integer) {
+            editor.putInt(key, (int) value);
+        } else if (value instanceof Boolean) {
+            editor.putBoolean(key, (boolean) value);
+        }
         editor.apply();
     }
 }
