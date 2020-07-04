@@ -18,7 +18,6 @@ import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
-import android.os.PowerManager;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
@@ -127,13 +126,6 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
             pausedTime = savedInstanceState.getLong(getString(R.string.time), 0);
             gpsTrack = savedInstanceState.getParcelableArrayList(getString(R.string.gps));
             isRunning = savedInstanceState.getBoolean(getString(R.string.isRunning), false);
-        }
-
-        //check power
-        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        String packageName = getPackageName();
-        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
-            Toast.makeText(getBaseContext(), "Please Disable Battery Optimization for this Application", Toast.LENGTH_SHORT).show();
         }
 
         myLoc.setOnClickListener(new View.OnClickListener() {
