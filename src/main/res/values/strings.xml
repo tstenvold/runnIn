@@ -95,7 +95,7 @@
     <string name="low">Low</string>
     <string name="medium">Medium</string>
     <string name="high">High</string>
-    <string name="permissionsmessage">"In order for runnIN to function correctly you need to give permission to the following settings."</string>
+    <string name="permissionsmessage">"In order for runnIN to function correctly, The following permissions need to be granted."</string>
     <string name="welcome">Welcome to runnIN!</string>
     <string name="conti">Continue</string>
     <string name="donotshow">Do Not Show Again</string>
@@ -105,6 +105,8 @@
     <string name="battery">Disable Battery Optimizations</string>
     <string name="request_file">Please Allow File Read and Write Permission</string>
     <string name="filedenied">File Read/Write Permission Denied</string>
+    <string name="cancel">Cancel</string>
+    <string name="kcal"> kcal</string>
 
 
 </resources>

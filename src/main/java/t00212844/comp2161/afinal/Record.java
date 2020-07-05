@@ -95,6 +95,11 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     private MapboxMap mapboxMap;
     private TextToSpeech tts;
 
+    private boolean unitsMetric;
+    private String smallUnit;
+    private String bigUnit;
+    private String paceUnit;
+
     public Record() {
         // Required empty public constructor
     }
@@ -127,6 +132,8 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
             gpsTrack = savedInstanceState.getParcelableArrayList(getString(R.string.gps));
             isRunning = savedInstanceState.getBoolean(getString(R.string.isRunning), false);
         }
+
+        setUnits();
 
         myLoc.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -376,30 +383,30 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
 
                 if (distance > 0) {
 
-                    if (distance < 1000) {
-                        distanceText += " " + getString(R.string.meters);
-                        tvDistance.setText(distanceText);
-                    } else if (distance >= 1000) {
-                        distanceText += " " + getString(R.string.kilometers);
-                        tvDistance.setText(distanceText);
+                    if (distance < 1000 && unitsMetric) {
+                        distanceText += " " + smallUnit;
+                    } else {
+                        distanceText += " " + bigUnit;
                     }
+                    tvDistance.setText(distanceText);
 
                     format = new DecimalFormat("0");
                     long pace = AnalyzeActivity.getOverallPace(gpsTrack);
                     TextView tvPace = findViewById(R.id.textView_Pace);
                     //TODO set units to change
                     //TODO make units smaller than rest of text
-                    String paceString = DateFormat.format("mm:ss", pace) + " /km";
+                    String paceString = DateFormat.format("mm:ss", pace) + paceUnit;
                     tvPace.setText(paceString);
 
                     tvCalories.setText(format.format(AnalyzeActivity.getCaloriesBurned(70, AnalyzeActivity.getTime(gpsTrack), pace)));
+
+                    TextView tvElevation = findViewById(R.id.textView_Elevation);
+                    String elText = AnalyzeActivity.getElevationGain(gpsTrack) + smallUnit;
+                    tvElevation.setText(elText);
                 }
 
                 //tts.speak("meters", TextToSpeech.QUEUE_FLUSH, null,"utterance-id");
 
-                TextView tvElevation = findViewById(R.id.textView_Elevation);
-                String elText = AnalyzeActivity.getElevationGain(gpsTrack) + " m";
-                tvElevation.setText(elText);
             }
 
             @Override
@@ -430,7 +437,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     private void endRun(View view) {
         final String[] userRunName = new String[1];
         String runName = generateRunName();
-        if (AnalyzeActivity.getDistanceInKm(gpsTrack) < 0.5) {
+        if (AnalyzeActivity.getDistanceInKm(gpsTrack) < 0.1 || gpsTrack.size() < 3) {
             Toast.makeText(getBaseContext(), "Run is not long enough to save", Toast.LENGTH_LONG).show();
             finish();
         } else {
@@ -467,6 +474,12 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                     bundle.putString("runname", userRunName[0]);
                     intent.putExtra("BUNDLE", bundle);
                     view.getContext().startActivity(intent);
+                    finish();
+                }
+            });
+            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    Toast.makeText(getBaseContext(), "Run not saved", Toast.LENGTH_LONG).show();
                     finish();
                 }
             });
@@ -508,10 +521,25 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         return level * 100 / (float) scale;
     }
 
+    private void setUnits() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        unitsMetric = pref.getBoolean(getString(R.string.units), true);
+        if (!unitsMetric) {
+            smallUnit = " " + getString(R.string.yards);
+            bigUnit = " " + getString(R.string.miles);
+            paceUnit = " /" + getString(R.string.miles);
+        } else {
+            smallUnit = " " + getString(R.string.meters);
+            bigUnit = " " + getString(R.string.kilometers);
+            paceUnit = " /" + getString(R.string.kilometers);
+        }
+
+    }
+
     @Override
     public void onBackPressed() {
         if (isRunning || resume.getVisibility() == View.VISIBLE) {
-            Toast.makeText(getBaseContext(), "Please End Run to Exit", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getBaseContext(), "Please end Run to exit", Toast.LENGTH_SHORT).show();
         } else {
             finish();
         }

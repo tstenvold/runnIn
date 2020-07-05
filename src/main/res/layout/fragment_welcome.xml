@@ -8,51 +8,18 @@
     android:minHeight="?attr/actionBarSize"
     tools:context=".WelcomeFragment">
 
-    <ImageView
-        android:id="@+id/welcomeivweather"
-        android:layout_width="36dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:contentDescription="@string/icon"
-        android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="@+id/welcometvGreeting"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/currentlyText" />
-
     <TextView
         android:id="@+id/welcometvGreeting"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="8dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
         android:textAlignment="viewStart"
         android:textSize="18sp"
-        app:layout_constraintEnd_toStartOf="@+id/divider10"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/imageView3"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/currentlyText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:text="Currently:"
-        app:layout_constraintEnd_toStartOf="@+id/welcomeivweather"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/welcometvGreeting"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/welcometvweather"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:textAlignment="viewStart"
-        android:textSize="18sp"
-        app:layout_constraintEnd_toStartOf="@+id/welcomeivweather"
-        app:layout_constraintStart_toStartOf="@+id/currentlyText"
-        app:layout_constraintTop_toBottomOf="@+id/currentlyText" />
 
     <View
         android:id="@+id/divider9"
@@ -64,15 +31,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="parent" />
 
-    <View
-        android:id="@+id/divider10"
-        android:layout_width="1dp"
-        android:layout_height="54dp"
-        android:background="?android:attr/listDivider"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <ImageView
+        android:id="@+id/imageView3"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_marginEnd="8dp"
+        android:src="@drawable/logo"
+        app:layout_constraintBottom_toBottomOf="@+id/welcometvGreeting"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.6"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="@+id/welcometvGreeting" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

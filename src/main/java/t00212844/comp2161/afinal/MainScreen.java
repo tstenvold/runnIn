@@ -85,4 +85,9 @@ public class MainScreen extends AppCompatActivity {
         outState.putInt(getString(R.string.curitem), curItem);
 
     }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+    }
 }

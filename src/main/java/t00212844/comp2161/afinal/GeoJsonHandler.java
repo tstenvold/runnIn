@@ -52,7 +52,7 @@ public class GeoJsonHandler {
         NumberFormat format = new DecimalFormat("0.00");
 
         double distance = AnalyzeActivity.getDistance(gpsTrack);
-        double time = AnalyzeActivity.getTime(gpsTrack);
+        long time = AnalyzeActivity.getTime(gpsTrack);
         double pace = AnalyzeActivity.getOverallPace(gpsTrack);
 
         final File file = new File(context.getFilesDir(), runName + "_" + format.format(distance) + "_" +

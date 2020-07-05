@@ -1,12 +1,14 @@
 package t00212844.comp2161.afinal;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -72,6 +74,11 @@ public class SingleRun extends AppCompatActivity {
     private ArrayList<String> jsonProp;
     private int lineGraphSpace = 0;
 
+    private boolean unitsMetric;
+    private String smallUnit;
+    private String bigUnit;
+    private String paceUnit;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,6 +117,8 @@ public class SingleRun extends AppCompatActivity {
             Bundle bundle = getIntent().getBundleExtra("BUNDLE");
             gpsTrack = (ArrayList<Location>) bundle.getSerializable("ARRAYLIST");
             runName = bundle.getString("runname");
+            time = AnalyzeActivity.getTime(gpsTrack);
+            distance = AnalyzeActivity.getDistance(gpsTrack);
             NumberFormat format = new DecimalFormat("0.00");
             file = new File(getFilesDir(), runName + "_" + format.format(distance) + "_" +
                     DateFormat.format("dd_MM_yyyy", Calendar.getInstance().getTime()).toString()
@@ -117,6 +126,8 @@ public class SingleRun extends AppCompatActivity {
                     + ".json");
 
         }
+
+        setUnits();
 
         if (jsonProp != null && jsonProp.size() == 4) {
             runName = jsonProp.get(0);
@@ -131,6 +142,7 @@ public class SingleRun extends AppCompatActivity {
             elgain = AnalyzeActivity.getElevationGain(gpsTrack);
             elmax = AnalyzeActivity.getElevationHigh(gpsTrack);
             elmin = AnalyzeActivity.getElevationLow(gpsTrack);
+            //TODO get Weight from sharedpref
             calories = AnalyzeActivity.getCaloriesBurned(70, time, pace);
         }
 
@@ -152,16 +164,16 @@ public class SingleRun extends AppCompatActivity {
 
         NumberFormat decimalFormat = new DecimalFormat("0.00");
         NumberFormat numberFormat = new DecimalFormat("0");
-        distanceTextView.setText(decimalFormat.format(distance));
+        distanceTextView.setText(decimalFormat.format(distance) + bigUnit);
 
         timeTextView.setText(AnalyzeActivity.getTimeString(time));
         dateTextView.setText(DateFormat.format("dd/MM/yyyy HH:mm", gpsTrack.get(0).getTime()));
-        elgainTextView.setText(numberFormat.format(elgain));
-        elmaxTextView.setText(numberFormat.format(elmax));
-        elminTextView.setText(numberFormat.format(elmin));
-        paceTextView.setText(DateFormat.format("mm:ss", pace));
-        paceFastTextView.setText(DateFormat.format("mm:ss", paceFast));
-        calTextView.setText(numberFormat.format(calories));
+        elgainTextView.setText(numberFormat.format(elgain) + smallUnit);
+        elmaxTextView.setText(numberFormat.format(elmax) + smallUnit);
+        elminTextView.setText(numberFormat.format(elmin) + smallUnit);
+        paceTextView.setText(DateFormat.format("mm:ss", pace) + paceUnit);
+        paceFastTextView.setText(DateFormat.format("mm:ss", paceFast) + paceUnit);
+        calTextView.setText(numberFormat.format(calories) + " " + getString(R.string.kcal));
 
         getSupportActionBar().setTitle(runName);
         drawGraph(graphel, 0);
@@ -215,34 +227,41 @@ public class SingleRun extends AppCompatActivity {
 
     private void getMapView(File file) {
         File png = new File(getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
+
         if (!png.exists()) {
-            try {
-                List<Point> points = GeoJsonHandler.getFilePoints(file);
-                if (points.size() == 0) {
-                    points.add(Point.fromLngLat(-120.364049, 50.670493));
-                }
-                LineString lineString = LineString.fromLngLats(points);
+            new Thread(() -> {
+                // a potentially time consuming task
+                mapView.post(() -> {
+                    try {
+                        List<Point> points = GeoJsonHandler.getFilePoints(file);
+                        if (points.size() == 0) {
+                            points.add(Point.fromLngLat(-120.364049, 50.670493));
+                        }
+                        LineString lineString = LineString.fromLngLats(points);
 
-                Point pointMid = AnalyzeActivity.calculateMidpointMapImage(points);
-                MapboxStaticMap staticImage = MapboxStaticMap.builder()
-                        .accessToken(getString(R.string.access_token))
-                        .styleId(StaticMapCriteria.STREET_STYLE)
-                        //Loads the map center on the middle point of run. Crude but should be ok
-                        .cameraPoint(pointMid)
-                        .cameraAuto(true)
-                        .retina(true)
-                        .width(720) // Image width
-                        .height(720) // Image height
-                        .geoJson(lineString)
-                        .build();
+                        Point pointMid = AnalyzeActivity.calculateMidpointMapImage(points);
+                        MapboxStaticMap staticImage = MapboxStaticMap.builder()
+                                .accessToken(getString(R.string.access_token))
+                                .styleId(StaticMapCriteria.STREET_STYLE)
+                                //Loads the map center on the middle point of run. Crude but should be ok
+                                .cameraPoint(pointMid)
+                                .cameraAuto(true)
+                                .retina(true)
+                                .width(720) // Image width
+                                .height(720) // Image height
+                                .geoJson(lineString)
+                                .build();
 
-                String imageUrl = staticImage.url().toString();
-                Picasso.with(getBaseContext()).load(imageUrl).into(
-                        ActivitiesAdapter.picassoImageTarget(getBaseContext(), png.getAbsolutePath()));
+                        String imageUrl = staticImage.url().toString();
+                        Picasso.with(getBaseContext()).load(imageUrl).into(
+                                ActivitiesAdapter.picassoImageTarget(getBaseContext(), png.getAbsolutePath()));
+                        Picasso.with(getBaseContext()).load(imageUrl).into(mapView);
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
+            }).start();
         }
     }
 
@@ -276,9 +295,9 @@ public class SingleRun extends AppCompatActivity {
                 @Override
                 public String formatLabel(double value, boolean isValueX) {
                     if (isValueX) {
-                        return super.formatLabel(value, isValueX) + " km";
+                        return super.formatLabel(value, isValueX) + bigUnit;
                     } else {
-                        return super.formatLabel(value, isValueX) + " m";
+                        return super.formatLabel(value, isValueX) + smallUnit;
                     }
                 }
             });
@@ -288,9 +307,9 @@ public class SingleRun extends AppCompatActivity {
                 @Override
                 public String formatLabel(double value, boolean isValueX) {
                     if (isValueX) {
-                        return super.formatLabel(value, isValueX) + " km";
+                        return super.formatLabel(value, isValueX) + bigUnit;
                     } else {
-                        return super.formatLabel(value, isValueX) + " km/h";
+                        return super.formatLabel(value, isValueX) + bigUnit + "/h";
                     }
                 }
             });
@@ -323,4 +342,20 @@ public class SingleRun extends AppCompatActivity {
 
         return bitmap;
     }
+
+    private void setUnits() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        unitsMetric = pref.getBoolean(getString(R.string.units), true);
+        if (!unitsMetric) {
+            smallUnit = " " + getString(R.string.yards);
+            bigUnit = " " + getString(R.string.miles);
+            paceUnit = " /" + getString(R.string.miles);
+        } else {
+            smallUnit = " " + getString(R.string.meters);
+            bigUnit = " " + getString(R.string.kilometers);
+            paceUnit = " /" + getString(R.string.kilometers);
+        }
+
+    }
+
 }

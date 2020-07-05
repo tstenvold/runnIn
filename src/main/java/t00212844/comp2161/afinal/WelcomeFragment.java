@@ -1,10 +1,8 @@
 package t00212844.comp2161.afinal;
 
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,19 +11,6 @@ import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 
-import com.squareup.picasso.Picasso;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Calendar;
 
 public class WelcomeFragment extends Fragment {
@@ -57,12 +42,12 @@ public class WelcomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_welcome, container, false);
 
         greeting = view.findViewById(R.id.welcometvGreeting);
-        status = view.findViewById(R.id.welcometvweather);
-        icon = view.findViewById(R.id.welcomeivweather);
+        //status = view.findViewById(R.id.welcometvweather);
+        //icon = view.findViewById(R.id.welcomeivweather);
 
         greeting.setText(generateGreeting());
         //Get current weather for current location
-        setWeather();
+        //setWeather();
 
         return view;
     }
@@ -89,7 +74,7 @@ public class WelcomeFragment extends Fragment {
         return greeting;
     }
 
-    private void setWeather() {
+    /*private void setWeather() {
         String apiKey = "20b4dd37224fd777c9480e6392f45636";
         String baseUrl = "https://api.openweathermap.org/data/2.5/weather?";
         //TODO get lat and lon dynamically
@@ -168,5 +153,5 @@ public class WelcomeFragment extends Fragment {
                 e.printStackTrace();
             }
         }
-    }
+    }*/
 }

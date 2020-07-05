@@ -249,7 +249,7 @@
                 android:layout_height="wrap_content"
                 android:paddingStart="4dp"
                 android:paddingEnd="4dp"
-                android:text="@string/elevation"
+                android:text="@string/elgain"
                 android:textAlignment="center"
                 android:textSize="18sp"
                 android:textStyle="bold"
