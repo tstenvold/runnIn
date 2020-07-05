@@ -15,14 +15,17 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.io.File;
 import java.util.ArrayList;
 
 public class ActivitiesFragment extends Fragment {
 
+    private static final int NUMITEMS = 2;
     ArrayList<File> files;
     RecyclerView.Adapter sAdapter;
+    public int count;
 
     public ActivitiesFragment() {
         // Required empty public constructor
@@ -122,12 +125,58 @@ public class ActivitiesFragment extends Fragment {
         RecyclerView sRView = view.findViewById(R.id.rv_activities);
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         sRView.setLayoutManager(layoutManager);
+
+        count = NUMITEMS;
         files = GeoJsonHandler.getJsonFiles(context);
+        if (files.size() > count) {
+            files = new ArrayList<>(files.subList(0, count));
+        }
         sAdapter = new ActivitiesAdapter(files);
         sRView.setAdapter(sAdapter);
 
         ItemTouchHelper itemTouchHelper = new ItemTouchHelper(simpleItemTouchCallback);
         itemTouchHelper.attachToRecyclerView(sRView);
+
+        sRView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            boolean bottom = false;
+
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+
+                if (!recyclerView.canScrollVertically(1) && !bottom) {
+                    bottom = true;
+                    count += NUMITEMS;
+                    files.clear();
+                    ArrayList<File> newList = GeoJsonHandler.getJsonFiles(context);
+                    files.addAll(newList);
+                    if (newList.size() > count) {
+                        for (int i = 0; i <= count; i++) {
+                            files.add(newList.get(i));
+                        }
+                    }
+                    sAdapter.notifyDataSetChanged();
+                    bottom = false;
+                }
+            }
+        });
+
+        final SwipeRefreshLayout refresh = view.findViewById(R.id.pullRefresh);
+        refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                files.clear();
+                ArrayList<File> newList = GeoJsonHandler.getJsonFiles(context);
+                files.addAll(newList);
+                if (newList.size() > count) {
+                    for (int i = 0; i <= count; i++) {
+                        files.add(newList.get(i));
+                    }
+                }
+                sAdapter.notifyDataSetChanged();
+                refresh.setRefreshing(false);
+            }
+        });
 
         return view;
     }

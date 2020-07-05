@@ -3,10 +3,12 @@ package t00212844.comp2161.afinal;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +40,10 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
 
     private static final int DEFAULT_ZOOM = 14;
     private final ArrayList<File> jsonFiles;
+    private boolean unitsMetric;
+    private String smallUnit;
+    private String bigUnit;
+    private String paceUnit;
 
     public ActivitiesAdapter(ArrayList<File> sList) {
         jsonFiles = sList;
@@ -107,6 +113,8 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
         SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyy HH:mm", Locale.CANADA);
         NumberFormat decimalFormat = new DecimalFormat("0.00");
 
+        setUnits(holder);
+
         try {
             jsonProp = GeoJsonHandler.readJsonProperties(file);
             gpsTrack = GeoJsonHandler.readJson(file);
@@ -118,7 +126,8 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
             holder.activityName.setText(jsonProp.get(0));
             holder.date.setText(DateFormat.format("dd/MM/yyyy HH:mm", gpsTrack.get(0).getTime()));
             holder.time.setText(AnalyzeActivity.getTimeString(Long.parseLong(jsonProp.get(2).substring(0, jsonProp.get(2).length() - 2))));
-            holder.distance.setText(decimalFormat.format(Double.parseDouble(jsonProp.get(1)) / 1000));
+            String distanceText = decimalFormat.format(Double.parseDouble(jsonProp.get(1)) / 1000) + bigUnit;
+            holder.distance.setText(distanceText);
         }
 
         File png = new File(context.getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
@@ -134,7 +143,6 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
 
         if (!png.exists()) {
             new Thread(() -> {
-                // a potentially time consuming task
                 holder.mapView.post(() -> {
                     try {
                         List<Point> points = GeoJsonHandler.getFilePoints(file);
@@ -172,6 +180,22 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
                 png.delete();
             }
         }
+    }
+
+    private void setUnits(ViewHolder holder) {
+        Context context = holder.itemView.getContext();
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
+        unitsMetric = pref.getBoolean(context.getString(R.string.units), true);
+        if (!unitsMetric) {
+            smallUnit = " " + context.getString(R.string.yards);
+            bigUnit = " " + context.getString(R.string.miles);
+            paceUnit = " /" + context.getString(R.string.miles);
+        } else {
+            smallUnit = " " + context.getString(R.string.meters);
+            bigUnit = " " + context.getString(R.string.kilometers);
+            paceUnit = " /" + context.getString(R.string.kilometers);
+        }
+
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {

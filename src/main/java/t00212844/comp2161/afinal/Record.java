@@ -393,7 +393,6 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                     format = new DecimalFormat("0");
                     long pace = AnalyzeActivity.getOverallPace(gpsTrack);
                     TextView tvPace = findViewById(R.id.textView_Pace);
-                    //TODO set units to change
                     //TODO make units smaller than rest of text
                     String paceString = DateFormat.format("mm:ss", pace) + paceUnit;
                     tvPace.setText(paceString);
