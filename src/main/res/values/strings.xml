@@ -107,6 +107,8 @@
     <string name="filedenied">File Read/Write Permission Denied</string>
     <string name="cancel">Cancel</string>
     <string name="kcal"> kcal</string>
+    <string name="channel_name">runnIn Notification Channel</string>
+    <string name="channel_description">runnIn Notifications</string>
 
 
 </resources>

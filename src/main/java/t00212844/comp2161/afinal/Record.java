@@ -4,6 +4,10 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -15,6 +19,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.BatteryManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -32,6 +37,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -94,6 +100,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     private CountDownTimer timer;
     private MapboxMap mapboxMap;
     private TextToSpeech tts;
+    NotificationManager notificationManager;
 
     private boolean unitsMetric;
     private String smallUnit;
@@ -112,6 +119,8 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_record);
+
+        createNotificationChannel();
 
         mLayout = findViewById(R.id.main_layout);
         chronometer = findViewById(R.id.textView_Time);
@@ -541,6 +550,55 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
             Toast.makeText(getBaseContext(), "Please end Run to exit", Toast.LENGTH_SHORT).show();
         } else {
             finish();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (isRunning) {
+            createNotification();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (notificationManager != null) {
+            notificationManager.cancel(0);
+        }
+    }
+
+    public void createNotification() {
+        Intent intent = this.getIntent();
+        PendingIntent pIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), intent, 0);
+
+        Notification notification = new NotificationCompat.Builder(this, getString(R.string.app_name))
+                .setSmallIcon(R.drawable.logo)
+                .setContentIntent(pIntent)
+                .setChannelId(getString(R.string.app_name))
+                .setContentTitle(getString(R.string.app_name))
+                .setNotificationSilent()
+                .setContentText("runnIn is currently recording your run")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT).build();
+
+        notificationManager.notify(0, notification);
+    }
+
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = getString(R.string.channel_name);
+            String description = getString(R.string.channel_description);
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(getString(R.string.app_name), name,
+                    importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviours after this
+            notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
         }
     }
 }
