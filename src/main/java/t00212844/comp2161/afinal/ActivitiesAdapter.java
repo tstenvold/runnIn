@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
 import android.view.LayoutInflater;
@@ -112,6 +113,8 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
         ArrayList<Location> gpsTrack = new ArrayList<>();
         SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyy HH:mm", Locale.CANADA);
         NumberFormat decimalFormat = new DecimalFormat("0.00");
+        File png = new File(context.getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
+        File ava = new File(context.getFilesDir() + "/" + context.getString(R.string.avatarpath));
 
         setUnits(holder);
 
@@ -130,7 +133,12 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
             holder.distance.setText(distanceText);
         }
 
-        File png = new File(context.getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
+        if (ava.exists()) {
+            Uri avatarpath = Uri.parse(ava.getAbsolutePath());
+            holder.avatar.setImageURI(avatarpath);
+        } else {
+            holder.avatar.setImageDrawable(context.getDrawable(R.drawable.account_circle_24px));
+        }
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -187,7 +195,7 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
         unitsMetric = pref.getBoolean(context.getString(R.string.units), true);
         if (!unitsMetric) {
-            smallUnit = " " + context.getString(R.string.yards);
+            smallUnit = " " + context.getString(R.string.feet);
             bigUnit = " " + context.getString(R.string.miles);
             paceUnit = " /" + context.getString(R.string.miles);
         } else {
@@ -215,7 +223,7 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
             distance = itemView.findViewById(R.id.tv_distance);
             date = itemView.findViewById(R.id.tv_date);
             mapView = itemView.findViewById(R.id.row_mapView);
-            avatar = itemView.findViewById(R.id.avatarImage);
+            avatar = itemView.findViewById(R.id.avatarImageView);
 
         }
     }

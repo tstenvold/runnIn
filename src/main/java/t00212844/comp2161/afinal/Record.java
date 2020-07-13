@@ -4,7 +4,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -38,6 +37,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -71,6 +71,7 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineCap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
@@ -86,6 +87,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     private final int ANIMATION_SHORT = 3000;
     private boolean isRunning;
     private long pausedTime = 0;
+    private int curUnitDistance = 0;
     private Chronometer chronometer;
     private FloatingActionButton play;
     private FloatingActionButton resume;
@@ -96,16 +98,19 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     private TextView tvDistance;
     private TextView tvCalories;
     private TextView tvResume;
+    private TextView tvElevation;
+    private TextView tvPace;
     private TextView tvEnd;
     private CountDownTimer timer;
     private MapboxMap mapboxMap;
     private TextToSpeech tts;
     NotificationManager notificationManager;
-
+    private int voicecmd;
     private boolean unitsMetric;
     private String smallUnit;
     private String bigUnit;
     private String paceUnit;
+    private String unitString;
 
     public Record() {
         // Required empty public constructor
@@ -131,18 +136,27 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         resume = findViewById(R.id.button_resume);
         tvResume = findViewById(R.id.tvResume);
         tvEnd = findViewById(R.id.tvEndRun);
+        tvPace = findViewById(R.id.textView_Pace);
+        tvElevation = findViewById(R.id.textView_Elevation);
         isRunning = false;
         gpsTrack = new ArrayList<>();
         mapTrack = new ArrayList<>();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
         if (savedInstanceState != null) {
-            pausedTime = savedInstanceState.getLong(getString(R.string.time), 0);
-            gpsTrack = savedInstanceState.getParcelableArrayList(getString(R.string.gps));
-            isRunning = savedInstanceState.getBoolean(getString(R.string.isRunning), false);
+            onRestoreInstanceState(savedInstanceState);
         }
 
         setUnits();
+
+        tts = new TextToSpeech(getBaseContext(), new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status != TextToSpeech.ERROR) {
+                    tts.setLanguage(Locale.CANADA);
+                }
+            }
+        });
 
         myLoc.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -185,6 +199,10 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
             }
         });
 
+        initMap(savedInstanceState);
+    }
+
+    private void initMap(Bundle savedInstanceState) {
         Mapbox.getInstance(getBaseContext(), getString(R.string.access_token));
 
         SupportMapFragment mapFragment;
@@ -235,6 +253,47 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                 lineColor(ContextCompat.getColor(getBaseContext(), R.color.lineColor))
         );
         loadedMapStyle.addLayer(routeLayer);
+    }
+
+    private void startRecording() {
+
+        isRunning = true;
+        play.setImageResource(android.R.drawable.ic_media_pause);
+        tvEnd.setVisibility(View.INVISIBLE);
+        resume.setVisibility(View.INVISIBLE);
+        tvResume.setVisibility(View.INVISIBLE);
+        chronometer.setBase(SystemClock.elapsedRealtime() + pausedTime);
+        setTTSPref();
+        if (voicecmd > 0 && pausedTime == 0) {
+            speakTTSCommands(0);
+        }
+        if (voicecmd > 0 && pausedTime != 0) {
+            speakTTSCommands(2);
+        }
+
+        requestLocation();
+        chronometer.start();
+        runBackgroundCalculations(5000);
+
+    }
+
+    private void pauseRecording() {
+
+        isRunning = false;
+        pausedTime = chronometer.getBase() - SystemClock.elapsedRealtime();
+        play.setImageResource(0);
+        tvEnd.setVisibility(View.VISIBLE);
+        tvResume.setVisibility(View.VISIBLE);
+        resume.setVisibility(View.VISIBLE);
+        if (voicecmd > 0) {
+            speakTTSCommands(1);
+        }
+
+        locationManager.removeUpdates(this);
+        chronometer.stop();
+        if (timer != null) {
+            timer.cancel();
+        }
     }
 
     @SuppressWarnings({"MissingPermission"})
@@ -310,36 +369,6 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         }
     }
 
-    private void startRecording() {
-
-        isRunning = true;
-        play.setImageResource(android.R.drawable.ic_media_pause);
-        tvEnd.setVisibility(View.INVISIBLE);
-        resume.setVisibility(View.INVISIBLE);
-        tvResume.setVisibility(View.INVISIBLE);
-        chronometer.setBase(SystemClock.elapsedRealtime() + pausedTime);
-        requestLocation();
-        chronometer.start();
-        runBackgroundCalculations(5000);
-
-    }
-
-    private void pauseRecording() {
-
-        isRunning = false;
-        pausedTime = chronometer.getBase() - SystemClock.elapsedRealtime();
-        play.setImageResource(0);
-        tvEnd.setVisibility(View.VISIBLE);
-        tvResume.setVisibility(View.VISIBLE);
-        resume.setVisibility(View.VISIBLE);
-
-        locationManager.removeUpdates(this);
-        chronometer.stop();
-        if (timer != null) {
-            timer.cancel();
-        }
-    }
-
     @Override
     public void onLocationChanged(Location location) {
 
@@ -387,34 +416,50 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
 
             public void onTick(long millisUntilFinished) {
                 NumberFormat format;
-                double distance = AnalyzeActivity.getDistance(gpsTrack);
-                String distanceText = AnalyzeActivity.getDistanceString(distance, false);
 
-                if (distance > 0) {
+                //TODO make units smaller than rest of text
+                if (gpsTrack.size() > 1) {
 
-                    if (distance < 1000 && unitsMetric) {
-                        distanceText += " " + smallUnit;
-                    } else {
-                        distanceText += " " + bigUnit;
+                    double distance = AnalyzeActivity.getDistanceInKm(gpsTrack);
+                    format = new DecimalFormat("0.0");
+                    if (!unitsMetric) {
+                        distance = (distance / 1.609);
                     }
-                    tvDistance.setText(distanceText);
+                    String distanceText = format.format(distance);
+                    distanceText += " " + bigUnit;
 
                     format = new DecimalFormat("0");
                     long pace = AnalyzeActivity.getOverallPace(gpsTrack);
-                    TextView tvPace = findViewById(R.id.textView_Pace);
-                    //TODO make units smaller than rest of text
+                    if (!unitsMetric) {
+                        pace = (long) (pace * 1.60934);
+                    }
                     String paceString = DateFormat.format("mm:ss", pace) + paceUnit;
+
+                    int elgain = AnalyzeActivity.getElevationGain(gpsTrack);
+                    if (!unitsMetric) {
+                        elgain = (int) (elgain * 3.28084);
+                    }
+                    String elText = elgain + smallUnit;
+
                     tvPace.setText(paceString);
-
+                    tvDistance.setText(distanceText);
                     tvCalories.setText(format.format(AnalyzeActivity.getCaloriesBurned(70, AnalyzeActivity.getTime(gpsTrack), pace)));
-
-                    TextView tvElevation = findViewById(R.id.textView_Elevation);
-                    String elText = AnalyzeActivity.getElevationGain(gpsTrack) + smallUnit;
                     tvElevation.setText(elText);
+
+                    if ((int) distance > curUnitDistance && voicecmd > 0) {
+                        curUnitDistance = (int) distance;
+                        String speakText = getString(R.string.currentdistance) + " " + curUnitDistance + " " + unitString;
+                        if (curUnitDistance == 1) {
+                            speakText = speakText.substring(0, speakText.length() - 1);
+                        }
+                        if (voicecmd == 2) {
+                            String minutes = " " + DateFormat.format("m", pace) + " " + getString(R.string.minutes) + " ";
+                            String seconds = DateFormat.format("s", pace) + " " + getString(R.string.seconds) + " per ";
+                            speakText += ". " + getString(R.string.currentpace) + minutes + seconds + unitString.substring(0, unitString.length() - 1);
+                        }
+                        tts.speak(speakText, TextToSpeech.QUEUE_FLUSH, null, "utterance-id");
+                    }
                 }
-
-                //tts.speak("meters", TextToSpeech.QUEUE_FLUSH, null,"utterance-id");
-
             }
 
             @Override
@@ -434,17 +479,34 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
 
     }
 
+    public Bundle buildSaveStateBundle() {
+        Bundle state = new Bundle();
+        state.putLong(getString(R.string.time), chronometer.getBase());
+        state.putParcelableArrayList(getString(R.string.gps), gpsTrack);
+        state.putBoolean(getString(R.string.isRunning), isRunning);
+        return state;
+    }
+
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putLong(getString(R.string.time), chronometer.getBase());
-        outState.putParcelableArrayList(getString(R.string.gps), gpsTrack);
-        outState.putBoolean(getString(R.string.isRunning), isRunning);
+        outState.putAll(buildSaveStateBundle());
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        pausedTime = savedInstanceState.getLong(getString(R.string.time), 0);
+        gpsTrack = savedInstanceState.getParcelableArrayList(getString(R.string.gps));
+        isRunning = savedInstanceState.getBoolean(getString(R.string.isRunning), false);
     }
 
     private void endRun(View view) {
         final String[] userRunName = new String[1];
         String runName = generateRunName();
+        if (voicecmd > 0) {
+            speakTTSCommands(3);
+        }
         if (AnalyzeActivity.getDistanceInKm(gpsTrack) < 0.1 || gpsTrack.size() < 3) {
             Toast.makeText(getBaseContext(), "Run is not long enough to save", Toast.LENGTH_LONG).show();
             finish();
@@ -518,6 +580,25 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         view.getContext().startActivity(intent);
     }
 
+    private void speakTTSCommands(int position) {
+        String speakText = "";
+        switch (position) {
+            case 0:
+                speakText = getString(R.string.starting);
+                break;
+            case 1:
+                speakText = getString(R.string.pausing);
+                break;
+            case 2:
+                speakText = getString(R.string.resuming);
+                break;
+            case 3:
+                speakText = getString(R.string.ending);
+                break;
+        }
+        tts.speak(speakText, TextToSpeech.QUEUE_FLUSH, null, "utterance-id");
+    }
+
     public float getBatteryPercentage() {
 
         IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
@@ -529,14 +610,21 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         return level * 100 / (float) scale;
     }
 
+    private void setTTSPref() {
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        voicecmd = pref.getInt(getString(R.string.voicecmd), 0);
+    }
+
     private void setUnits() {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         unitsMetric = pref.getBoolean(getString(R.string.units), true);
         if (!unitsMetric) {
-            smallUnit = " " + getString(R.string.yards);
+            unitString = getString(R.string.milesString);
+            smallUnit = " " + getString(R.string.feet);
             bigUnit = " " + getString(R.string.miles);
             paceUnit = " /" + getString(R.string.miles);
         } else {
+            unitString = getString(R.string.kilometersString);
             smallUnit = " " + getString(R.string.meters);
             bigUnit = " " + getString(R.string.kilometers);
             paceUnit = " /" + getString(R.string.kilometers);
@@ -547,7 +635,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     @Override
     public void onBackPressed() {
         if (isRunning || resume.getVisibility() == View.VISIBLE) {
-            Toast.makeText(getBaseContext(), "Please end Run to exit", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getBaseContext(), getString(R.string.endExit), Toast.LENGTH_SHORT).show();
         } else {
             finish();
         }
@@ -570,19 +658,22 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     }
 
     public void createNotification() {
-        Intent intent = this.getIntent();
-        PendingIntent pIntent = PendingIntent.getActivity(this, (int) System.currentTimeMillis(), intent, 0);
+        Intent intent = new Intent(this, Record.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
 
-        Notification notification = new NotificationCompat.Builder(this, getString(R.string.app_name))
-                .setSmallIcon(R.drawable.logo)
-                .setContentIntent(pIntent)
-                .setChannelId(getString(R.string.app_name))
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, getString(R.string.app_name))
+                .setSmallIcon(R.drawable.icon)
                 .setContentTitle(getString(R.string.app_name))
                 .setNotificationSilent()
-                .setContentText("runnIn is currently recording your run")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT).build();
+                .setContentText("Currently recording your run")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                //.setContentIntent(pendingIntent)
+                .setAutoCancel(true);
 
-        notificationManager.notify(0, notification);
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.notify(0, builder.build());
+
     }
 
     private void createNotificationChannel() {

@@ -49,27 +49,6 @@ public class AnalyzeActivity {
         return 0;
     }
 
-    public static String getDistanceString(double distance, boolean isImperial) {
-        NumberFormat format;
-        double formattedDistance;
-
-        if (distance > 1000) {
-            format = new DecimalFormat("0.00");
-            formattedDistance = distance / 1000;
-            if (isImperial) {
-                formattedDistance /= KMTOMIL;
-            }
-        } else {
-            format = new DecimalFormat("##0");
-            formattedDistance = distance;
-            if (isImperial) {
-                formattedDistance /= MTOYD;
-            }
-        }
-
-        return format.format(formattedDistance);
-    }
-
     public static Point calculateMidpointMapImage(List<Point> points) {
 
         int midpoint = (points.size() / 2) - 1;

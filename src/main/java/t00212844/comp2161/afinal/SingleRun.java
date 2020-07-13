@@ -347,7 +347,7 @@ public class SingleRun extends AppCompatActivity {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         unitsMetric = pref.getBoolean(getString(R.string.units), true);
         if (!unitsMetric) {
-            smallUnit = " " + getString(R.string.yards);
+            smallUnit = " " + getString(R.string.feet);
             bigUnit = " " + getString(R.string.miles);
             paceUnit = " /" + getString(R.string.miles);
         } else {

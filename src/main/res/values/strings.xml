@@ -8,9 +8,9 @@
     <string name="split">"Split"</string>
     <string name="distance">"Distance"</string>
     <string name="meters">m</string>
-    <string name="yards">y</string>
+    <string name="feet">ft</string>
     <string name="kilometers">km</string>
-    <string name="miles">mil</string>
+    <string name="miles">mi</string>
     <string name="elevation">Elevation</string>
     <string name="elgain">Elevation Gain</string>
     <string name="location">tbd</string>
@@ -109,6 +109,14 @@
     <string name="kcal"> kcal</string>
     <string name="channel_name">runnIn Notification Channel</string>
     <string name="channel_description">runnIn Notifications</string>
+    <string name="currentdistance">Current Distance</string>
+    <string name="milesString">Miles</string>
+    <string name="kilometersString">Kilometers</string>
+    <string name="endExit">Please end the run before exiting</string>
+    <string name="currentpace">"Current Pace "</string>
+    <string name="pausing">Pausing Run</string>
+    <string name="resuming">Resuming Run</string>
+    <string name="ending">Ending Run</string>
 
 
 </resources>
