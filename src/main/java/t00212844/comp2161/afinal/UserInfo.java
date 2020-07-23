@@ -2,7 +2,6 @@ package t00212844.comp2161.afinal;
 
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -15,7 +14,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -24,7 +22,6 @@ import android.widget.Toast;
 import androidx.fragment.app.Fragment;
 
 import com.github.angads25.toggle.LabeledSwitch;
-import com.github.angads25.toggle.interfaces.OnToggledListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.File;
@@ -79,75 +76,49 @@ public class UserInfo extends Fragment {
 
         Button savebutton = view.findViewById(R.id.saveUserInfo);
 
-        savebutton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                savePreferences();
-            }
+        savebutton.setOnClickListener(v -> savePreferences());
+
+        detailInfo.setOnClickListener(v -> new AlertDialog.Builder(getActivity())
+                .setTitle(getString(R.string.info))
+                .setMessage(getString(R.string.personalInfo))
+                .setPositiveButton(getString(R.string.ok), (dialog, id) -> dialog.cancel()).show());
+
+        avatar.setOnClickListener(v -> {
+            Intent photoPicker = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
+            startActivityForResult(photoPicker, 0);
         });
 
-        detailInfo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new AlertDialog.Builder(getActivity())
-                        .setTitle(getString(R.string.info))
-                        .setMessage(getString(R.string.personalInfo))
-                        .setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        }).show();
+        labeledSwitch.setOnToggledListener((labeledSwitch, isOn) -> toggleUnits(isOn));
+
+        dob.setOnClickListener(v -> {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            Calendar cal = Calendar.getInstance();
+            try {
+                cal.setTime(Objects.requireNonNull(dateFormat.parse(dob.getText().toString())));
+            } catch (ParseException e) {
+                e.printStackTrace();
             }
-        });
 
-        avatar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent photoPicker = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
-                startActivityForResult(photoPicker, 0);
-            }
-        });
-
-        labeledSwitch.setOnToggledListener(new OnToggledListener() {
-            @Override
-            public void onSwitched(LabeledSwitch labeledSwitch, boolean isOn) {
-                if (!isOn) {
-                    weightUnit.setText(R.string.pound);
-                } else {
-                    weightUnit.setText(R.string.kilo);
-                }
-            }
-        });
-
-        dob.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                Calendar cal = Calendar.getInstance();
-                try {
-                    cal.setTime(Objects.requireNonNull(dateFormat.parse(dob.getText().toString())));
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-
-                DatePickerDialog mDatePicker = new DatePickerDialog(requireActivity(), new DatePickerDialog.OnDateSetListener() {
-                    @Override
-                    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                        Calendar myCalendar = Calendar.getInstance();
-                        myCalendar.set(Calendar.YEAR, year);
-                        myCalendar.set(Calendar.MONTH, month);
-                        myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-                        dob.setText(dateFormat.format(myCalendar.getTime()));
-                    }
-
-                }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
-                mDatePicker.show();
-            }
+            DatePickerDialog mDatePicker = new DatePickerDialog(requireActivity(), (view1, year, month, dayOfMonth) -> {
+                SimpleDateFormat dateFormat1 = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                Calendar myCalendar = Calendar.getInstance();
+                myCalendar.set(Calendar.YEAR, year);
+                myCalendar.set(Calendar.MONTH, month);
+                myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+                dob.setText(dateFormat1.format(myCalendar.getTime()));
+            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH));
+            mDatePicker.show();
         });
         loadPreferences();
         return view;
+    }
+
+    private void toggleUnits(boolean isOn) {
+        if (!isOn) {
+            weightUnit.setText(R.string.pound);
+        } else {
+            weightUnit.setText(R.string.kilo);
+        }
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent imageReturnedIntent) {
@@ -155,8 +126,8 @@ public class UserInfo extends Fragment {
         if (requestCode == 0) {
             if (resultCode == RESULT_OK) {
                 avatarpath = imageReturnedIntent.getData();
-                InputStream ims = null;
-                FileOutputStream baos = null;
+                InputStream ims;
+                FileOutputStream baos;
 
                 try {
                     ims = requireContext().getContentResolver().openInputStream(avatarpath);
@@ -195,12 +166,13 @@ public class UserInfo extends Fragment {
     private void loadPreferences() {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getContext());
         labeledSwitch.setOn(pref.getBoolean(getString(R.string.units), true));
+        toggleUnits(labeledSwitch.isOn());
         name.setText(pref.getString(getString(R.string.name), ""));
         weight.setText(pref.getString(getString(R.string.weight), ""));
         height.setText(pref.getString(getString(R.string.height), ""));
         dob.setText(pref.getString(getString(R.string.birthday), ""));
 
-        File avatarFile = new File(getContext().getFilesDir() + "/" + getString(R.string.avatarpath));
+        File avatarFile = new File(requireContext().getFilesDir() + "/" + getString(R.string.avatarpath));
         if (avatarFile.exists()) {
             avatarpath = Uri.parse(avatarFile.getAbsolutePath());
             avatar.setImageURI(avatarpath);

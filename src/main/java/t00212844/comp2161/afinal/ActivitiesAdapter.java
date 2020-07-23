@@ -3,13 +3,11 @@ package t00212844.comp2161.afinal;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
-import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,10 +39,7 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
 
     private static final int DEFAULT_ZOOM = 14;
     private final ArrayList<File> jsonFiles;
-    private boolean unitsMetric;
-    private String smallUnit;
     private String bigUnit;
-    private String paceUnit;
 
     public ActivitiesAdapter(ArrayList<File> sList) {
         jsonFiles = sList;
@@ -110,28 +105,39 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
         Context context = holder.itemView.getContext();
         File file = jsonFiles.get(position);
         ArrayList<String> jsonProp = new ArrayList<>();
-        ArrayList<Location> gpsTrack = new ArrayList<>();
         SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyy HH:mm", Locale.CANADA);
         NumberFormat decimalFormat = new DecimalFormat("0.00");
         File png = new File(context.getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
         File ava = new File(context.getFilesDir() + "/" + context.getString(R.string.avatarpath));
 
-        setUnits(holder);
-
         try {
             jsonProp = GeoJsonHandler.readJsonProperties(file);
-            gpsTrack = GeoJsonHandler.readJson(file);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        if (jsonProp.size() == 4) {
+
+        if (jsonProp.size() == 5) {
             holder.activityName.setText(jsonProp.get(0));
-            holder.date.setText(DateFormat.format("dd/MM/yyyy HH:mm", gpsTrack.get(0).getTime()));
-            holder.time.setText(AnalyzeActivity.getTimeString(Long.parseLong(jsonProp.get(2).substring(0, jsonProp.get(2).length() - 2))));
+            setUnits(holder, Boolean.parseBoolean(jsonProp.get(4)));
+            Long time = Long.parseLong(jsonProp.get(2).replace(".0", ""));
+            holder.time.setText(AnalyzeActivity.getTimeString(time));
             String distanceText = decimalFormat.format(Double.parseDouble(jsonProp.get(1)) / 1000) + bigUnit;
             holder.distance.setText(distanceText);
         }
+
+        final Runnable r = new Runnable() {
+            public void run() {
+                ArrayList<Location> points = new ArrayList<>();
+                try {
+                    points = GeoJsonHandler.readJson(file);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                holder.date.setText(DateFormat.format("dd/MM/yyyy HH:mm", points.get(0).getTime()));
+            }
+        };
+        r.run();
 
         if (ava.exists()) {
             Uri avatarpath = Uri.parse(ava.getAbsolutePath());
@@ -140,46 +146,40 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
             holder.avatar.setImageDrawable(context.getDrawable(R.drawable.account_circle_24px));
         }
 
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(view.getContext(), SingleRun.class);
-                intent.putExtra(view.getContext().getString(R.string.filepath), file.getName());
-                context.startActivity(intent);
-            }
+        holder.itemView.setOnClickListener(view -> {
+            Intent intent = new Intent(view.getContext(), SingleRun.class);
+            intent.putExtra(view.getContext().getString(R.string.filepath), file.getName());
+            context.startActivity(intent);
         });
 
         if (!png.exists()) {
-            new Thread(() -> {
-                holder.mapView.post(() -> {
-                    try {
-                        List<Point> points = GeoJsonHandler.getFilePoints(file);
-                        if (points.size() == 0) {
-                            points.add(Point.fromLngLat(-120.364049, 50.670493));
-                        }
-                        LineString lineString = LineString.fromLngLats(points);
-
-                        Point pointMid = AnalyzeActivity.calculateMidpointMapImage(points);
-                        MapboxStaticMap staticImage = MapboxStaticMap.builder()
-                                .accessToken(context.getString(R.string.access_token))
-                                .styleId(StaticMapCriteria.OUTDOORS_STYLE)
-                                .cameraAuto(true)
-                                .retina(true)
-                                .attribution(false)
-                                .width(720) // Image width
-                                .height(640) // Image height
-                                .geoJson(lineString)
-                                .build();
-
-                        String imageUrl = staticImage.url().toString();
-                        Picasso.with(context).load(imageUrl).into(picassoImageTarget(context, png.getAbsolutePath()));
-                        Picasso.with(context).load(imageUrl).into(holder.mapView);
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
+            new Thread(() -> holder.mapView.post(() -> {
+                try {
+                    List<Point> points = GeoJsonHandler.getFilePoints(file);
+                    if (points.size() == 0) {
+                        points.add(Point.fromLngLat(-120.364049, 50.670493));
                     }
-                });
-            }).start();
+                    LineString lineString = LineString.fromLngLats(points);
+
+                    Point pointMid = AnalyzeActivity.calculateMidpointMapImage(points);
+                    MapboxStaticMap staticImage = MapboxStaticMap.builder()
+                            .accessToken(context.getString(R.string.access_token))
+                            .styleId(StaticMapCriteria.OUTDOORS_STYLE)
+                            .cameraAuto(true)
+                            .attribution(false)
+                            .width(1080) // Image width
+                            .height(720) // Image height
+                            .geoJson(lineString)
+                            .build();
+
+                    String imageUrl = staticImage.url().toString();
+                    Picasso.with(context).load(imageUrl).into(picassoImageTarget(context, png.getAbsolutePath()));
+                    Picasso.with(context).load(imageUrl).into(holder.mapView);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            })).start();
         } else {
             Bitmap myBitmap = BitmapFactory.decodeFile(png.getAbsolutePath());
             if (myBitmap != null) {
@@ -187,14 +187,15 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
             } else {
                 png.delete();
             }
+            png.delete();
         }
     }
 
-    private void setUnits(ViewHolder holder) {
+    private void setUnits(ViewHolder holder, boolean units) {
         Context context = holder.itemView.getContext();
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
-        unitsMetric = pref.getBoolean(context.getString(R.string.units), true);
-        if (!unitsMetric) {
+        String paceUnit;
+        String smallUnit;
+        if (!units) {
             smallUnit = " " + context.getString(R.string.feet);
             bigUnit = " " + context.getString(R.string.miles);
             paceUnit = " /" + context.getString(R.string.miles);

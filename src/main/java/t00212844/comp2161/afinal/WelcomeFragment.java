@@ -24,10 +24,8 @@ public class WelcomeFragment extends Fragment {
         // Required empty public constructor
     }
 
-    // TODO: Rename and change types and number of parameters
     public static WelcomeFragment newInstance(String param1, String param2) {
-        WelcomeFragment fragment = new WelcomeFragment();
-        return fragment;
+        return new WelcomeFragment();
     }
 
     @Override
@@ -55,7 +53,7 @@ public class WelcomeFragment extends Fragment {
     private String generateGreeting() {
         String greeting = "";
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getContext());
-        String name = pref.getString(getString(R.string.name), "");
+        String name = pref.getString(getString(R.string.name), getString(R.string.defaultUser));
         if (name.contains(" ") && name.length() > 1) {
             name = name.substring(0, name.indexOf(" "));
         }
@@ -68,7 +66,7 @@ public class WelcomeFragment extends Fragment {
             greeting = "Good Evening " + name;
         } else if (hour >= 21) {
             greeting = "Don't Forget your Headlamp " + name;
-        } else if (hour > 0 && hour < 6) {
+        } else if (hour > 0) {
             greeting = "The Early Bird Catches the Worm " + name;
         }
         return greeting;

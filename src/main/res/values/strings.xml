@@ -1,11 +1,9 @@
 <resources>
     <string name="app_name">runnIN</string>
-    <string name="ok">ok</string>
+    <string name="ok">OK</string>
     <string name="request_location">Please enable Location Access, runnIn requires access to your location.</string>
     <string name="location_unavailable">Location Access Not Permitted</string>
-    <string name="location_allowed">Location Access Granted</string>
     <string name="pace">"Pace"</string>
-    <string name="split">"Split"</string>
     <string name="distance">"Distance"</string>
     <string name="meters">m</string>
     <string name="feet">ft</string>
@@ -13,12 +11,9 @@
     <string name="miles">mi</string>
     <string name="elevation">Elevation</string>
     <string name="elgain">Elevation Gain</string>
-    <string name="location">tbd</string>
     <string name="access_token">pk.eyJ1IjoidHN0ZW52b2xkIiwiYSI6ImNrYjZxZW1zbjAxNjAycm9iNjZ2MnhneTkifQ.Pm56qnLeN1A5jnl6a61X5g</string>
     <string name="logo">runnIN Logo</string>
     <string name="paceDefault">0:00</string>
-    <string name="minperkm">min/km</string>
-    <string name="minpermil">min/mil</string>
 
 
     <string name="mapview">MapView Icon</string>
@@ -26,33 +21,24 @@
     <string name="runGeoJsonLayerId">geojson-layer</string>
     <string name="mapID">mapID</string>
 
-    <string name="metric">Metric</string>
-    <string name="imperial">Imperial</string>
     <string name="name">Name</string>
     <string name="weight">Weight</string>
     <string name="avatar">Avatar</string>
-    <string name="age">Age</string>
     <string name="enterName">Donovan Bailey</string>
-    <string name="enterAge">Age</string>
     <string name="units">Units</string>
     <string name="height">Height</string>
     <string name="kilo">kg</string>
     <string name="pound">lbs</string>
     <string name="centimeter">cm</string>
-    <string name="foot">ft</string>
-    <string name="inch">in</string>
     <string name="exampleDate">01/01/1970</string>
     <string name="birthday">Date Of Birth</string>
     <string name="save">Save</string>
     <string name="defaultHeight">185</string>
     <string name="defaultWeight">75</string>
 
-    <string name="lastkmin">Last Kilometer In</string>
-    <string name="lastmilin">Last Mile In</string>
     <string name="minutes">Minutes</string>
     <string name="seconds">seconds</string>
     <string name="starting">Starting Run</string>
-    <string name="stopping">Stopping Run</string>
 
     <string name="personalInfo">This information is not mandatory but improves the
         accuracy of some of the statistics.</string>
@@ -95,7 +81,7 @@
     <string name="low">Low</string>
     <string name="medium">Medium</string>
     <string name="high">High</string>
-    <string name="permissionsmessage">"In order for runnIN to function correctly, The following permissions need to be granted."</string>
+    <string name="permissionsmessage">"In order for runnIN to function correctly, the following permissions need to be granted."</string>
     <string name="welcome">Welcome to runnIN!</string>
     <string name="conti">Continue</string>
     <string name="donotshow">Do Not Show Again</string>
@@ -103,8 +89,6 @@
     <string name="internetaccess">Access to the Internet</string>
     <string name="gpsaccess">Location Access</string>
     <string name="battery">Disable Battery Optimizations</string>
-    <string name="request_file">Please Allow File Read and Write Permission</string>
-    <string name="filedenied">File Read/Write Permission Denied</string>
     <string name="cancel">Cancel</string>
     <string name="kcal"> kcal</string>
     <string name="channel_name">runnIn Notification Channel</string>
@@ -117,6 +101,13 @@
     <string name="pausing">Pausing Run</string>
     <string name="resuming">Resuming Run</string>
     <string name="ending">Ending Run</string>
+    <string name="activities">Activities</string>
+    <string name="run">Run</string>
+    <string name="profile">Profile</string>
+    <string name="defaultUser">runnIn-User</string>
+    <string name="allrights">Terence Stenvold 2020</string>
+    <string name="email">tstenvold@gmail.com</string>
+    <string name="wasRunning">wasRunning</string>
 
 
 </resources>

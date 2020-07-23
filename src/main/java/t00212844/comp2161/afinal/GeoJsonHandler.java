@@ -1,7 +1,9 @@
 package t00212844.comp2161.afinal;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
+import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
 import android.util.JsonReader;
 import android.util.JsonWriter;
@@ -50,10 +52,13 @@ public class GeoJsonHandler {
     public static void writeJson(Context context, ArrayList<Location> gpsTrack, String runName) throws IOException {
 
         NumberFormat format = new DecimalFormat("0.00");
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(context);
 
+        boolean units = pref.getBoolean(context.getString(R.string.units), true);
         double distance = AnalyzeActivity.getDistance(gpsTrack);
         long time = AnalyzeActivity.getTime(gpsTrack);
         double pace = AnalyzeActivity.getOverallPace(gpsTrack);
+
 
         final File file = new File(context.getFilesDir(), runName + "_" + format.format(distance) + "_" +
                 DateFormat.format("dd_MM_yyyy", Calendar.getInstance().getTime()).toString()
@@ -77,6 +82,7 @@ public class GeoJsonHandler {
         writer.name("distance").value(String.valueOf(distance));
         writer.name("time").value(String.valueOf(time));
         writer.name("pace").value(String.valueOf(pace));
+        writer.name("units").value(String.valueOf(units));
         writer.endObject();
         writer.name("geometry");
         writer.beginObject();
@@ -107,6 +113,7 @@ public class GeoJsonHandler {
         String distance = "";
         String time = "";
         String pace = "";
+        String units = "true";
 
         reader.beginObject();
         while (reader.hasNext()) {
@@ -132,6 +139,9 @@ public class GeoJsonHandler {
                                     break;
                                 case "pace":
                                     pace = reader.nextString();
+                                    break;
+                                case "units":
+                                    units = reader.nextString();
                                     break;
                                 default:
                                     reader.skipValue();
@@ -163,6 +173,7 @@ public class GeoJsonHandler {
         if (!pace.equals("")) {
             jsonprop.add(pace);
         }
+        jsonprop.add(units);
 
         return jsonprop;
     }

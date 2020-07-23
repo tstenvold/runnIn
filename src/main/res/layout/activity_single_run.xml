@@ -11,11 +11,11 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/colorAccent"
         android:contentDescription="@string/icon"
         android:minHeight="?attr/actionBarSize"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:background="@color/colorAccent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -23,7 +23,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/zero"
-        android:textSize="30sp"
+        android:textSize="24sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/runAvatar"
         app:layout_constraintEnd_toStartOf="@+id/runTime"
         app:layout_constraintStart_toEndOf="@+id/runAvatar" />
@@ -45,31 +46,31 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:text="@string/paceDefault"
-        android:textSize="30sp"
+        android:textSize="24sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/runDistance"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/runAvatar"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="4dp"
-        app:cardCornerRadius="50dp"
+        app:cardCornerRadius="37.5dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
         <ImageView
             android:id="@+id/runAvatarImage"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
             android:contentDescription="@string/avatar"
             android:scaleType="centerCrop" />
     </androidx.cardview.widget.CardView>
 
     <View
-        android:id="@+id/divider3"
-        android:layout_width="409dp"
+        android:layout_width="0dp"
         android:layout_height="1dp"
         android:layout_marginBottom="2dp"
         android:background="?android:attr/listDivider"
@@ -94,7 +95,7 @@
             <ImageView
                 android:id="@+id/runMap"
                 android:layout_width="0dp"
-                android:layout_height="350dp"
+                android:layout_height="280dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="4dp"
                 android:layout_marginEnd="8dp"
@@ -156,7 +157,6 @@
                 app:srcCompat="@drawable/speed_24px" />
 
             <ImageView
-                android:id="@+id/imageView6"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:adjustViewBounds="true"
@@ -316,7 +316,6 @@
                 app:layout_constraintTop_toBottomOf="@+id/textView15" />
 
             <ImageView
-                android:id="@+id/imageView5"
                 android:layout_width="wrap_content"
                 android:layout_height="0dp"
                 android:adjustViewBounds="true"

@@ -2,13 +2,14 @@ package t00212844.comp2161.afinal;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -17,12 +18,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.google.android.material.snackbar.Snackbar;
+
 import java.io.File;
 import java.util.ArrayList;
 
 public class ActivitiesFragment extends Fragment {
 
-    private static final int NUMITEMS = 2;
+    private static final int NUMITEMS = 5;
     ArrayList<File> files;
     RecyclerView.Adapter sAdapter;
     public int count;
@@ -99,10 +102,30 @@ public class ActivitiesFragment extends Fragment {
 
         @Override
         public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
-            Toast.makeText(getContext(), "Activity Deleted", Toast.LENGTH_SHORT).show();
             int position = viewHolder.getAdapterPosition();
+            ArrayList<File> tempFiles = new ArrayList<>();
+            tempFiles.addAll(files);
             files.remove(position);
-            sAdapter.notifyDataSetChanged();
+            Snackbar snackbar = Snackbar.make(viewHolder.itemView, "Run Deleted", Snackbar.LENGTH_LONG);
+            View view = snackbar.getView();
+            TextView tv = (TextView) view.findViewById(R.id.snackbar_text);
+            tv.setTextColor(Color.WHITE);
+            snackbar.setAction("Undo", v -> {
+                files.clear();
+                files.addAll(tempFiles);
+                refreshFiles(snackbar.getContext());
+            });
+            snackbar.addCallback(new Snackbar.Callback() {
+
+                @Override
+                public void onDismissed(Snackbar snackbar, int event) {
+                    if (event == DISMISS_EVENT_TIMEOUT) {
+                        tempFiles.get(position).delete();
+                    }
+                    refreshFiles(snackbar.getContext());
+                }
+            });
+            snackbar.show();
         }
     };
 
@@ -162,23 +185,23 @@ public class ActivitiesFragment extends Fragment {
         });
 
         final SwipeRefreshLayout refresh = view.findViewById(R.id.pullRefresh);
-        refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                files.clear();
-                ArrayList<File> newList = GeoJsonHandler.getJsonFiles(context);
-                files.addAll(newList);
-                if (newList.size() > count) {
-                    for (int i = 0; i <= count; i++) {
-                        files.add(newList.get(i));
-                    }
-                }
-                sAdapter.notifyDataSetChanged();
-                refresh.setRefreshing(false);
-            }
+        refresh.setOnRefreshListener(() -> {
+            refreshFiles(context);
+            refresh.setRefreshing(false);
         });
 
         return view;
     }
 
+    private void refreshFiles(Context context) {
+        files.clear();
+        ArrayList<File> newList = GeoJsonHandler.getJsonFiles(context);
+        files.addAll(newList);
+        if (newList.size() > count) {
+            for (int i = 0; i <= count; i++) {
+                files.add(newList.get(i));
+            }
+        }
+        sAdapter.notifyDataSetChanged();
+    }
 }

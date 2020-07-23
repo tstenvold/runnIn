@@ -93,7 +93,6 @@
         app:layout_constraintVertical_bias="0.0" />
 
     <ImageView
-        android:id="@+id/gpsImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -105,7 +104,6 @@
         app:srcCompat="@drawable/gps_fixed_24px" />
 
     <ImageView
-        android:id="@+id/voiceImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -117,7 +115,6 @@
         app:srcCompat="@drawable/record_voice_over_24px" />
 
     <ImageView
-        android:id="@+id/screenImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"

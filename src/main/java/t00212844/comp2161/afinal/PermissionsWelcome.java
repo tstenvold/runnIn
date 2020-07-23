@@ -149,4 +149,8 @@ public class PermissionsWelcome extends AppCompatActivity {
         super.onResume();
         updateCheck();
     }
+
+    public void onPause() {
+        super.onPause();
+    }
 }

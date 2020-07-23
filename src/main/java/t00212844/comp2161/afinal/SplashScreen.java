@@ -6,23 +6,27 @@ import android.os.Handler;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+/**
+ * Splash Screen to welcome the user to the app
+ */
 public class SplashScreen extends AppCompatActivity {
 
+    /**
+     * Creates the timer to close the splash screen and starts the next activity
+     *
+     * @param savedInstanceState bundle of saved user info
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
 
         final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Intent intent = new Intent(SplashScreen.this.getApplicationContext(), PermissionsWelcome.class);
-                SplashScreen.this.finish();
-                SplashScreen.this.startActivity(intent);
-                SplashScreen.this.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-            }
-        }, 600);
-
+        handler.postDelayed(() -> {
+            Intent intent = new Intent(SplashScreen.this.getApplicationContext(), PermissionsWelcome.class);
+            SplashScreen.this.finish();
+            SplashScreen.this.startActivity(intent);
+            SplashScreen.this.overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
+        }, 1250);
     }
 }

@@ -3,15 +3,15 @@
         android:id="@+id/runs"
         android:enabled="true"
         android:icon="@drawable/ic_home_black_24dp"
-        android:title="Activites" />
+        android:title="@string/activities" />
     <item
         android:id="@+id/record"
         android:enabled="true"
         android:icon="@drawable/directions_run_24px"
-        android:title="Run" />
+        android:title="@string/run" />
     <item
         android:id="@+id/user"
         android:enabled="true"
         android:icon="@drawable/account_circle_24px"
-        android:title="Profile" />
+        android:title="@string/profile" />
 </menu>

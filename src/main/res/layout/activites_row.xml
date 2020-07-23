@@ -33,7 +33,6 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <View
-            android:id="@+id/divider"
             android:layout_width="0dp"
             android:layout_height="3dp"
             android:background="?android:attr/listDivider"
@@ -63,7 +62,7 @@
         <FrameLayout
             android:id="@+id/row_frag_container"
             android:layout_width="0dp"
-            android:layout_height="250dp"
+            android:layout_height="280dp"
             android:layout_margin="1dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -80,18 +79,18 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/avatarImage"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="8dp"
-            app:cardCornerRadius="50dp"
+            app:cardCornerRadius="37.5dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/avatarImageView"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
+                android:layout_width="75dp"
+                android:layout_height="75dp"
                 android:contentDescription="@string/avatar"
                 android:scaleType="centerCrop"
                 app:layout_constraintStart_toStartOf="parent"

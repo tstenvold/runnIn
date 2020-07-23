@@ -4,12 +4,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.FileProvider;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.jjoe64.graphview.DefaultLabelFormatter;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.GridLabelRenderer;
@@ -70,11 +73,12 @@ public class SingleRun extends AppCompatActivity {
     private long elmin;
     private long elgain;
     private int calories;
+    private File file;
     private ArrayList<Location> gpsTrack;
     private ArrayList<String> jsonProp;
     private int lineGraphSpace = 0;
 
-    private boolean unitsMetric;
+    private boolean isMetric = true;
     private String smallUnit;
     private String bigUnit;
     private String paceUnit;
@@ -83,11 +87,11 @@ public class SingleRun extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_single_run);
-        File file;
 
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 
         mapView = findViewById(R.id.runMap);
         avatarView = findViewById(R.id.runAvatarImage);
@@ -103,7 +107,6 @@ public class SingleRun extends AppCompatActivity {
         graphel = findViewById(R.id.elgraph);
         graphspeed = findViewById(R.id.speedgraph);
 
-        //TODO load from file path all the variables
         String filepath = getIntent().getStringExtra(getString(R.string.filepath));
         if (filepath != null) {
             file = new File(getFilesDir(), filepath);
@@ -115,7 +118,9 @@ public class SingleRun extends AppCompatActivity {
             }
         } else {
             Bundle bundle = getIntent().getBundleExtra("BUNDLE");
+            assert bundle != null;
             gpsTrack = (ArrayList<Location>) bundle.getSerializable("ARRAYLIST");
+            isMetric = pref.getBoolean(getString(R.string.units), true);
             runName = bundle.getString("runname");
             time = AnalyzeActivity.getTime(gpsTrack);
             distance = AnalyzeActivity.getDistance(gpsTrack);
@@ -127,23 +132,30 @@ public class SingleRun extends AppCompatActivity {
 
         }
 
-        setUnits();
-
-        if (jsonProp != null && jsonProp.size() == 4) {
+        if (jsonProp != null && jsonProp.size() == 5) {
             runName = jsonProp.get(0);
+            isMetric = Boolean.parseBoolean(jsonProp.get(4));
         }
+        setUnits(isMetric);
 
         if (gpsTrack != null) {
-            //TODO this probably needs to be handled Async
+            //TODO this probably needs to be handled Async and optimized
             distance = AnalyzeActivity.getDistanceInKm(gpsTrack);
             time = AnalyzeActivity.getTime(gpsTrack);
             pace = AnalyzeActivity.getOverallPace(gpsTrack);
             paceFast = AnalyzeActivity.getFastestPace(gpsTrack);
-            elgain = AnalyzeActivity.getElevationGain(gpsTrack);
-            elmax = AnalyzeActivity.getElevationHigh(gpsTrack);
-            elmin = AnalyzeActivity.getElevationLow(gpsTrack);
-            //TODO get Weight from sharedpref
-            calories = AnalyzeActivity.getCaloriesBurned(70, time, pace);
+            elgain = AnalyzeActivity.getElevationGain(gpsTrack, isMetric);
+            elmax = AnalyzeActivity.getElevationHigh(gpsTrack, isMetric);
+            elmin = AnalyzeActivity.getElevationLow(gpsTrack, isMetric);
+
+            int weight;
+            if (isMetric) {
+                weight = Integer.parseInt(pref.getString(getString(R.string.weight), "70"));
+            } else {
+                weight = Integer.parseInt(pref.getString(getString(R.string.weight), "155"));
+                weight /= 2.205;
+            }
+            calories = AnalyzeActivity.getCaloriesBurned(weight, time, pace);
         }
 
         File mapFile = new File(getBaseContext().getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
@@ -162,18 +174,25 @@ public class SingleRun extends AppCompatActivity {
             avatarView.setImageBitmap(avaBitmap);
         }
 
+        //Set all the textViews
         NumberFormat decimalFormat = new DecimalFormat("0.00");
         NumberFormat numberFormat = new DecimalFormat("0");
-        distanceTextView.setText(decimalFormat.format(distance) + bigUnit);
-
+        String textString = decimalFormat.format(distance) + bigUnit;
+        distanceTextView.setText(textString);
         timeTextView.setText(AnalyzeActivity.getTimeString(time));
         dateTextView.setText(DateFormat.format("dd/MM/yyyy HH:mm", gpsTrack.get(0).getTime()));
-        elgainTextView.setText(numberFormat.format(elgain) + smallUnit);
-        elmaxTextView.setText(numberFormat.format(elmax) + smallUnit);
-        elminTextView.setText(numberFormat.format(elmin) + smallUnit);
-        paceTextView.setText(DateFormat.format("mm:ss", pace) + paceUnit);
-        paceFastTextView.setText(DateFormat.format("mm:ss", paceFast) + paceUnit);
-        calTextView.setText(numberFormat.format(calories) + " " + getString(R.string.kcal));
+        textString = numberFormat.format(elgain) + smallUnit;
+        elgainTextView.setText(textString);
+        textString = numberFormat.format(elmax) + smallUnit;
+        elmaxTextView.setText(textString);
+        textString = numberFormat.format(elmin) + smallUnit;
+        elminTextView.setText(textString);
+        textString = DateFormat.format("mm:ss", pace) + paceUnit;
+        paceTextView.setText(textString);
+        textString = DateFormat.format("mm:ss", paceFast) + paceUnit;
+        paceFastTextView.setText(textString);
+        textString = numberFormat.format(calories) + " " + getString(R.string.kcal);
+        calTextView.setText(textString);
 
         getSupportActionBar().setTitle(runName);
         drawGraph(graphel, 0);
@@ -192,7 +211,7 @@ public class SingleRun extends AppCompatActivity {
             String path = Environment.getExternalStorageDirectory().toString() + "/RunOverview.jpeg";
             File file = new File(path);
 
-            FileOutputStream outputStream = null;
+            FileOutputStream outputStream;
             try {
                 outputStream = new FileOutputStream(file);
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
@@ -213,6 +232,23 @@ public class SingleRun extends AppCompatActivity {
             startActivity(Intent.createChooser(shareIntent, null));
 
             return true;
+        } else if (item.getItemId() == R.id.action_delete) {
+            Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), "Run Deleted", Snackbar.LENGTH_LONG);
+            View view = snackbar.getView();
+            TextView tv = (TextView) view.findViewById(R.id.snackbar_text);
+            tv.setTextColor(Color.WHITE);
+            snackbar.setAction("Undo", v -> Log.v("Undo", "Undo Delete"));
+            snackbar.addCallback(new Snackbar.Callback() {
+
+                @Override
+                public void onDismissed(Snackbar snackbar, int event) {
+                    if (event == DISMISS_EVENT_TIMEOUT) {
+                        file.delete();
+                        finish();
+                    }
+                }
+            });
+            snackbar.show();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -225,12 +261,11 @@ public class SingleRun extends AppCompatActivity {
         return true;
     }
 
-    private void getMapView(File file) {
+    public void getMapView(File file) {
         File png = new File(getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
 
         if (!png.exists()) {
             new Thread(() -> {
-                // a potentially time consuming task
                 mapView.post(() -> {
                     try {
                         List<Point> points = GeoJsonHandler.getFilePoints(file);
@@ -244,10 +279,10 @@ public class SingleRun extends AppCompatActivity {
                                 .accessToken(getString(R.string.access_token))
                                 .styleId(StaticMapCriteria.STREET_STYLE)
                                 //Loads the map center on the middle point of run. Crude but should be ok
-                                .cameraPoint(pointMid)
+                                //.cameraPoint(pointMid)
+                                .attribution(false)
                                 .cameraAuto(true)
-                                .retina(true)
-                                .width(720) // Image width
+                                .width(1080) // Image width
                                 .height(720) // Image height
                                 .geoJson(lineString)
                                 .build();
@@ -295,9 +330,9 @@ public class SingleRun extends AppCompatActivity {
                 @Override
                 public String formatLabel(double value, boolean isValueX) {
                     if (isValueX) {
-                        return super.formatLabel(value, isValueX) + bigUnit;
+                        return super.formatLabel(value, true) + bigUnit;
                     } else {
-                        return super.formatLabel(value, isValueX) + smallUnit;
+                        return super.formatLabel(value, false) + smallUnit;
                     }
                 }
             });
@@ -307,9 +342,9 @@ public class SingleRun extends AppCompatActivity {
                 @Override
                 public String formatLabel(double value, boolean isValueX) {
                     if (isValueX) {
-                        return super.formatLabel(value, isValueX) + bigUnit;
+                        return super.formatLabel(value, true) + bigUnit;
                     } else {
-                        return super.formatLabel(value, isValueX) + bigUnit + "/h";
+                        return super.formatLabel(value, false) + bigUnit + "/h";
                     }
                 }
             });
@@ -343,9 +378,8 @@ public class SingleRun extends AppCompatActivity {
         return bitmap;
     }
 
-    private void setUnits() {
-        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        unitsMetric = pref.getBoolean(getString(R.string.units), true);
+    private void setUnits(boolean units) {
+        boolean unitsMetric = units;
         if (!unitsMetric) {
             smallUnit = " " + getString(R.string.feet);
             bigUnit = " " + getString(R.string.miles);

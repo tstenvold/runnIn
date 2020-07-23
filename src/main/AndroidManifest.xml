@@ -19,7 +19,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".PermissionsWelcome"></activity>
+        <activity android:name=".PermissionsWelcome" />
         <activity android:name=".Record_Settings" />
         <activity android:name=".NotificationActivity" />
         <activity android:name=".SingleRun" />

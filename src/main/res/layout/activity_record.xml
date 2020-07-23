@@ -5,12 +5,12 @@
     android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/gradient_bg_180"
     android:elevation="0dp"
     android:keepScreenOn="true"
     tools:context=".Record">
 
     <View
-        android:id="@+id/divider8"
         android:layout_width="0dp"
         android:layout_height="1dp"
         android:background="?android:attr/listDivider"
@@ -19,7 +19,6 @@
         app:layout_constraintTop_toBottomOf="@+id/divider7" />
 
     <View
-        android:id="@+id/divider4"
         android:layout_width="0dp"
         android:layout_height="1dp"
         android:background="?android:attr/listDivider"
@@ -27,7 +26,6 @@
         app:layout_constraintTop_toBottomOf="@+id/textView_Time" />
 
     <View
-        android:id="@+id/divider2"
         android:layout_width="0dp"
         android:layout_height="1dp"
         android:background="?android:attr/listDivider"
@@ -173,7 +171,7 @@
         android:layout_weight="0"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:text="@string/elevation"
+        android:text="@string/elgain"
         app:layout_constraintEnd_toStartOf="@+id/divider7"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/divider6" />
@@ -271,7 +269,6 @@
         app:layout_constraintTop_toBottomOf="@+id/divider6" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabRecordSettings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"

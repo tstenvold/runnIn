@@ -8,7 +8,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -58,7 +57,6 @@ import com.mapbox.mapboxsdk.location.modes.CameraMode;
 import com.mapbox.mapboxsdk.location.modes.RenderMode;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.MapboxMapOptions;
-import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.maps.SupportMapFragment;
 import com.mapbox.mapboxsdk.style.layers.LineLayer;
@@ -116,10 +114,6 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         // Required empty public constructor
     }
 
-    public static Record newInstance(String param1, String param2) {
-        return new Record();
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -143,62 +137,76 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         mapTrack = new ArrayList<>();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        if (savedInstanceState != null) {
-            onRestoreInstanceState(savedInstanceState);
-        }
-
         setUnits();
 
-        tts = new TextToSpeech(getBaseContext(), new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status != TextToSpeech.ERROR) {
-                    tts.setLanguage(Locale.CANADA);
+        tts = new TextToSpeech(getApplicationContext(), status -> {
+            if (status != TextToSpeech.ERROR) {
+                tts.setLanguage(Locale.CANADA);
+            }
+        });
+
+        myLoc.setOnClickListener(view -> {
+            //Move back to previous location
+            if (mapboxMap.getLocationComponent().isLocationComponentActivated()) {
+                Location lastKnownLocation = mapboxMap.getLocationComponent().getLastKnownLocation();
+                if (lastKnownLocation != null) {
+                    CameraPosition position = new CameraPosition.Builder()
+                            .target(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()))
+                            .zoom(DEFAULT_ZOOM)
+                            .bearing(0)
+                            .build();
+
+                    mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), ANIMATION_SHORT);
                 }
             }
         });
 
-        myLoc.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //Move back to previous location
-                if (mapboxMap.getLocationComponent().isLocationComponentActivated()) {
-                    Location lastKnownLocation = mapboxMap.getLocationComponent().getLastKnownLocation();
-                    if (lastKnownLocation != null) {
-                        CameraPosition position = new CameraPosition.Builder()
-                                .target(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()))
-                                .zoom(DEFAULT_ZOOM)
-                                .bearing(0)
-                                .build();
-
-                        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), ANIMATION_SHORT);
-                    }
-                }
+        play.setOnClickListener(view -> {
+            if (!isRunning && tvEnd.getVisibility() == View.VISIBLE) {
+                endRun(view);
+            } else if (!isRunning) {
+                startRecording();
+            } else {
+                pauseRecording();
             }
         });
 
-        play.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (!isRunning && tvEnd.getVisibility() == View.VISIBLE) {
-                    endRun(view);
-                } else if (!isRunning) {
-                    startRecording();
-                } else {
-                    pauseRecording();
-                }
+        resume.setOnClickListener(view -> {
+            if (!isRunning) {
+                startRecording();
             }
         });
 
-        resume.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (!isRunning) {
-                    startRecording();
-                }
-            }
-        });
+        //Extremely hacky way to do this but it works for now
+        //TODO clean up this code into proper methods
+        if (savedInstanceState != null) {
+            pausedTime = savedInstanceState.getLong(getString(R.string.time), 0);
+            gpsTrack = savedInstanceState.getParcelableArrayList(getString(R.string.gps));
+            isRunning = savedInstanceState.getBoolean(getString(R.string.isRunning), false);
 
+            for (Location location : gpsTrack) {
+                mapTrack.add(Point.fromLngLat(location.getLongitude(), location.getLatitude()));
+            }
+
+            if (notificationManager != null) {
+                notificationManager.cancel(0);
+            }
+
+            if (isRunning) {
+                isRunning = false;
+                play.performClick();
+            } else if (pausedTime != 0) {
+                tvEnd.setVisibility(View.VISIBLE);
+                tvResume.setVisibility(View.VISIBLE);
+                resume.setVisibility(View.VISIBLE);
+                play.setImageResource(0);
+                //updates the timer to be displayed removed 10ms time to allow display to update
+                chronometer.setBase(SystemClock.elapsedRealtime() + pausedTime - 10);
+                chronometer.start();
+                chronometer.stop();
+                runBackgroundCalculations(0);
+            }
+        }
         initMap(savedInstanceState);
     }
 
@@ -223,22 +231,16 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         }
 
         if (mapFragment != null) {
-            mapFragment.getMapAsync(new OnMapReadyCallback() {
-                @Override
-                public void onMapReady(@NonNull MapboxMap mbox) {
-                    mapboxMap = mbox;
-                    mapboxMap.setStyle(Style.OUTDOORS, new Style.OnStyleLoaded() {
-                        @Override
-                        public void onStyleLoaded(@NonNull Style style) {
-                            enableLocationComponent(style);
-                            initLayers(style);
-                            LineString lineString = LineString.fromLngLats(mapTrack);
-                            Feature feature = Feature.fromGeometry(lineString);
-                            GeoJsonSource geoJsonSource = new GeoJsonSource(getString(R.string.runGeoJsonId), feature);
-                            style.addSource(geoJsonSource);
-                        }
-                    });
-                }
+            mapFragment.getMapAsync(mbox -> {
+                mapboxMap = mbox;
+                mapboxMap.setStyle(Style.OUTDOORS, style -> {
+                    enableLocationComponent(style);
+                    initLayers(style);
+                    LineString lineString = LineString.fromLngLats(mapTrack);
+                    Feature feature = Feature.fromGeometry(lineString);
+                    GeoJsonSource geoJsonSource = new GeoJsonSource(getString(R.string.runGeoJsonId), feature);
+                    style.addSource(geoJsonSource);
+                });
             });
         }
     }
@@ -315,7 +317,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     @SuppressLint("MissingPermission") //permission check handled
     private void requestLocation() {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        String provider = "";
+        String provider;
         int gps = pref.getInt(getString(R.string.gpsacc), 0);
         //GPS accuracy Auto
         if (gps == 0) {
@@ -336,16 +338,19 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                 case 1:
                     criteria.setPowerRequirement(Criteria.POWER_LOW);
                     provider = locationManager.getBestProvider(criteria, true);
+                    assert provider != null;
                     locationManager.requestLocationUpdates(provider, 25000, 30, this);
                     break;
                 case 2:
                     criteria.setPowerRequirement(Criteria.POWER_MEDIUM);
                     provider = locationManager.getBestProvider(criteria, true);
+                    assert provider != null;
                     locationManager.requestLocationUpdates(provider, 12000, 15, this);
                     break;
                 case 3:
                     criteria.setPowerRequirement(Criteria.POWER_HIGH);
                     provider = locationManager.getBestProvider(criteria, true);
+                    assert provider != null;
                     locationManager.requestLocationUpdates(provider, 5000, 5, this);
                     break;
             }
@@ -356,12 +361,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
 
     private void requestLocationPermission() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            Snackbar.make(mLayout, R.string.request_location, Snackbar.LENGTH_INDEFINITE).setAction(R.string.ok, new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    ActivityCompat.requestPermissions((Activity) getBaseContext(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_FINE_LOCATION);
-                }
-            }).show();
+            Snackbar.make(mLayout, R.string.request_location, Snackbar.LENGTH_INDEFINITE).setAction(R.string.ok, view -> ActivityCompat.requestPermissions((Activity) getBaseContext(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_FINE_LOCATION)).show();
 
         } else {
             Snackbar.make(mLayout, R.string.location_unavailable, Snackbar.LENGTH_SHORT).show();
@@ -372,26 +372,24 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
     @Override
     public void onLocationChanged(Location location) {
 
-        if (isRunning) {
+        if (isRunning && mapboxMap != null) {
             gpsTrack.add(location);
             mapTrack.add(Point.fromLngLat(location.getLongitude(), location.getLatitude()));
+            mapboxMap.getLocationComponent().forceLocationUpdate(location);
             Location lastKnownLocation = mapboxMap.getLocationComponent().getLastKnownLocation();
 
             //TODO fix this so it only does it after the view is reloaded
+            assert lastKnownLocation != null;
             CameraPosition position = new CameraPosition.Builder()
                     .target(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()))
                     .build();
 
-            mapboxMap.getStyle(new Style.OnStyleLoaded() {
-                @Override
-                public void onStyleLoaded(@NonNull Style style) {
-                    GeoJsonSource source = style.getSourceAs(getString(R.string.runGeoJsonId));
-                    if (source != null) {
-                        source.setGeoJson(LineString.fromLngLats(mapTrack));
-                    }
+            mapboxMap.getStyle(style -> {
+                GeoJsonSource source = style.getSourceAs(getString(R.string.runGeoJsonId));
+                if (source != null) {
+                    source.setGeoJson(LineString.fromLngLats(mapTrack));
                 }
             });
-            mapboxMap.getLocationComponent().forceLocationUpdate(location);
             mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(position), ANIMATION_IMMEDIATE);
         }
     }
@@ -418,7 +416,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                 NumberFormat format;
 
                 //TODO make units smaller than rest of text
-                if (gpsTrack.size() > 1) {
+                if (gpsTrack.size() > 1 && isRunning) {
 
                     double distance = AnalyzeActivity.getDistanceInKm(gpsTrack);
                     format = new DecimalFormat("0.0");
@@ -435,10 +433,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                     }
                     String paceString = DateFormat.format("mm:ss", pace) + paceUnit;
 
-                    int elgain = AnalyzeActivity.getElevationGain(gpsTrack);
-                    if (!unitsMetric) {
-                        elgain = (int) (elgain * 3.28084);
-                    }
+                    int elgain = AnalyzeActivity.getElevationGain(gpsTrack, unitsMetric);
                     String elText = elgain + smallUnit;
 
                     tvPace.setText(paceString);
@@ -481,7 +476,13 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
 
     public Bundle buildSaveStateBundle() {
         Bundle state = new Bundle();
-        state.putLong(getString(R.string.time), chronometer.getBase());
+        if (isRunning) {
+            pausedTime = chronometer.getBase() - SystemClock.elapsedRealtime();
+        }
+        if (timer != null) {
+            timer.cancel();
+        }
+        state.putLong(getString(R.string.time), pausedTime);
         state.putParcelableArrayList(getString(R.string.gps), gpsTrack);
         state.putBoolean(getString(R.string.isRunning), isRunning);
         return state;
@@ -493,65 +494,50 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         outState.putAll(buildSaveStateBundle());
     }
 
-    @Override
-    public void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        pausedTime = savedInstanceState.getLong(getString(R.string.time), 0);
-        gpsTrack = savedInstanceState.getParcelableArrayList(getString(R.string.gps));
-        isRunning = savedInstanceState.getBoolean(getString(R.string.isRunning), false);
-    }
-
     private void endRun(View view) {
         final String[] userRunName = new String[1];
         String runName = generateRunName();
         if (voicecmd > 0) {
             speakTTSCommands(3);
         }
-        if (AnalyzeActivity.getDistanceInKm(gpsTrack) < 0.1 || gpsTrack.size() < 3) {
+        if (AnalyzeActivity.getDistanceInKm(gpsTrack) < 0.1 || gpsTrack.size() < 2) {
             Toast.makeText(getBaseContext(), "Run is not long enough to save", Toast.LENGTH_LONG).show();
             finish();
         } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
             builder.setTitle(getString(R.string.enterrunname));
             final EditText input = new EditText(view.getContext());
-            input.setInputType(InputType.TYPE_CLASS_TEXT);
+            input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
             input.setHint(runName);
             builder.setView(input);
             builder.setCancelable(true);
-            builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    if (input.getText().toString().equals("")) {
-                        userRunName[0] = runName;
-                    } else {
-                        userRunName[0] = input.getText().toString();
+            builder.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
+                if (input.getText().toString().equals("")) {
+                    userRunName[0] = runName;
+                } else {
+                    userRunName[0] = input.getText().toString();
+                }
+                final Handler handler = new Handler();
+                Runnable runnable = () -> {
+                    try {
+                        GeoJsonHandler.writeJson(view.getContext(), gpsTrack, userRunName[0]);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                    final Handler handler = new Handler();
-                    Runnable runnable = new Runnable() {
-                        public void run() {
-                            try {
-                                GeoJsonHandler.writeJson(view.getContext(), gpsTrack, userRunName[0]);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    };
-                    runnable.run();
+                };
+                runnable.run();
 
-                    Intent intent = new Intent(view.getContext(), SingleRun.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putSerializable("ARRAYLIST", gpsTrack);
-                    bundle.putString("runname", userRunName[0]);
-                    intent.putExtra("BUNDLE", bundle);
-                    view.getContext().startActivity(intent);
-                    finish();
-                }
+                Intent intent = new Intent(view.getContext(), SingleRun.class);
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("ARRAYLIST", gpsTrack);
+                bundle.putString("runname", userRunName[0]);
+                intent.putExtra("BUNDLE", bundle);
+                view.getContext().startActivity(intent);
+                finish();
             });
-            builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int which) {
-                    Toast.makeText(getBaseContext(), "Run not saved", Toast.LENGTH_LONG).show();
-                    finish();
-                }
+            builder.setNegativeButton(R.string.cancel, (dialog, which) -> {
+                Toast.makeText(getBaseContext(), "Run not saved", Toast.LENGTH_LONG).show();
+                finish();
             });
             builder.show();
         }
@@ -569,7 +555,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
             runName = getString(R.string.eveningrun);
         } else if (hour >= 21) {
             runName = getString(R.string.laterun);
-        } else if (hour > 0 && hour < 6) {
+        } else if (hour > 0) {
             runName = getString(R.string.earlyrun);
         }
         return runName;
@@ -596,7 +582,9 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                 speakText = getString(R.string.ending);
                 break;
         }
-        tts.speak(speakText, TextToSpeech.QUEUE_FLUSH, null, "utterance-id");
+        if (tts != null) {
+            tts.speak(speakText, TextToSpeech.QUEUE_FLUSH, null, "utterance-id");
+        }
     }
 
     public float getBatteryPercentage() {
@@ -604,6 +592,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
         Intent batteryStatus = getApplicationContext().registerReceiver(null, ifilter);
 
+        assert batteryStatus != null;
         int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
         int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 
@@ -668,7 +657,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                 .setNotificationSilent()
                 .setContentText("Currently recording your run")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                //.setContentIntent(pendingIntent)
+                .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
@@ -689,6 +678,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
             // Register the channel with the system; you can't change the importance
             // or other notification behaviours after this
             notificationManager = getSystemService(NotificationManager.class);
+            assert notificationManager != null;
             notificationManager.createNotificationChannel(channel);
         }
     }

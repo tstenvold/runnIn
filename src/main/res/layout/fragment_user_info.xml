@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/gradient_bg"
     tools:context=".UserInfo">
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -140,6 +141,7 @@
         android:text="@string/height"
         android:textSize="24sp"
         android:textStyle="bold"
+        android:visibility="invisible"
         app:layout_constraintStart_toStartOf="@+id/textWeight"
         app:layout_constraintTop_toBottomOf="@+id/textWeight" />
 
@@ -155,6 +157,7 @@
         android:maxLength="3"
         android:textAlignment="center"
         android:textSize="24sp"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@+id/textHeight"
         app:layout_constraintEnd_toEndOf="@+id/editWeight"
         app:layout_constraintTop_toTopOf="@+id/textHeight" />
@@ -192,6 +195,7 @@
         android:layout_marginStart="8dp"
         android:text="@string/centimeter"
         android:textSize="18sp"
+        android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="@+id/editHeight"
         app:layout_constraintStart_toEndOf="@+id/editHeight" />
 
@@ -224,5 +228,4 @@
         app:layout_constraintTop_toTopOf="@+id/editTextDate">
 
     </FrameLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

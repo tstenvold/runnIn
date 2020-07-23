@@ -153,7 +153,7 @@ public class AnalyzeActivity {
         return (long) (duration / (getDistance(gpsTrack) / 1000));
     }
 
-    public static int getElevationGain(ArrayList<Location> gpsTrack) {
+    public static int getElevationGain(ArrayList<Location> gpsTrack, boolean isMetric) {
         int el = 0;
 
         if (gpsTrack.size() > 1) {
@@ -165,10 +165,14 @@ public class AnalyzeActivity {
                 }
             }
         }
+
+        if (!isMetric) {
+            el *= 3.28084;
+        }
         return el;
     }
 
-    public static int getElevationLow(ArrayList<Location> gpsTrack) {
+    public static int getElevationLow(ArrayList<Location> gpsTrack, boolean isMetric) {
         double el = 0;
 
         if (gpsTrack.size() > 0) {
@@ -181,10 +185,15 @@ public class AnalyzeActivity {
                 }
             }
         }
+
+        if (!isMetric) {
+            el *= 3.28084;
+        }
+
         return (int) el;
     }
 
-    public static int getElevationHigh(ArrayList<Location> gpsTrack) {
+    public static int getElevationHigh(ArrayList<Location> gpsTrack, boolean isMetric) {
         double el = 0;
 
         if (gpsTrack.size() > 0) {
@@ -195,6 +204,11 @@ public class AnalyzeActivity {
                 }
             }
         }
+
+        if (!isMetric) {
+            el *= 3.28084;
+        }
+
         return (int) el;
     }
 
@@ -227,7 +241,6 @@ public class AnalyzeActivity {
         //Weight is in kilograms
         long minutes = TimeUnit.MILLISECONDS.toMinutes(time);
         double unit;
-        //TODO make it capable of being dynamic to support walking to Running
 
         if (pace < 300000) {
             unit = JOGMET / ((double) pace / 300000);
