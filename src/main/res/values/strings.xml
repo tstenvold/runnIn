@@ -1,3 +1,11 @@
+<!--
+  ~ Copyright (c) 2020.
+  ~ Programmed by: Terence Stenvold
+  ~ Version 1.0
+  ~
+  ~
+  -->
+
 <resources>
     <string name="app_name">runnIN</string>
     <string name="ok">OK</string>

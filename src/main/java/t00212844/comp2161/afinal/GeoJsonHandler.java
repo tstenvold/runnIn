@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020.
+ * Programmed by: Terence Stenvold
+ * Version 1.0
+ *
+ *
+ */
+
 package t00212844.comp2161.afinal;
 
 import android.content.Context;

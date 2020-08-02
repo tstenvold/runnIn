@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2020.
+ * Programmed by: Terence Stenvold
+ * Version 1.0
+ *
+ *
+ */
+
 package t00212844.comp2161.afinal;
 
 import android.location.Location;
@@ -10,6 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * The type Analyze activity.
+ */
 public class AnalyzeActivity {
 
     //Constants to do conversions

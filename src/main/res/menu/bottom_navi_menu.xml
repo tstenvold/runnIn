@@ -1,3 +1,11 @@
+<!--
+  ~ Copyright (c) 2020.
+  ~ Programmed by: Terence Stenvold
+  ~ Version 1.0
+  ~
+  ~
+  -->
+
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/runs"
