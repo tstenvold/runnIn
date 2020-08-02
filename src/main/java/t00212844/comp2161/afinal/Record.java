@@ -27,6 +27,7 @@ import android.speech.tts.TextToSpeech;
 import android.text.InputType;
 import android.text.format.DateFormat;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Chronometer;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -137,6 +138,12 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         mapTrack = new ArrayList<>();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        if (pref.getBoolean(getString(R.string.scron), false)) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
         setUnits();
 
         tts = new TextToSpeech(getApplicationContext(), status -> {
@@ -145,6 +152,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
             }
         });
 
+        //Moves Map View to current location and default zoom level
         myLoc.setOnClickListener(view -> {
             //Move back to previous location
             if (mapboxMap.getLocationComponent().isLocationComponentActivated()) {
@@ -643,6 +651,12 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         super.onResume();
         if (notificationManager != null) {
             notificationManager.cancel(0);
+        }
+        SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        if (pref.getBoolean(getString(R.string.scron), false)) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
     }
 

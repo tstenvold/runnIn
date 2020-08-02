@@ -36,6 +36,7 @@
         android:layout_height="64dp"
         android:layout_marginEnd="8dp"
         android:src="@drawable/logo"
+        android:onClick="openPermissionWelcome"
         app:layout_constraintBottom_toBottomOf="@+id/welcometvGreeting"
         app:layout_constraintEnd_toEndOf="parent"
         android:contentDescription="@string/icon"

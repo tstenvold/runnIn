@@ -24,7 +24,7 @@
     <string name="name">Name</string>
     <string name="weight">Weight</string>
     <string name="avatar">Avatar</string>
-    <string name="enterName">Donovan Bailey</string>
+    <string name="enterName">Enter Name</string>
     <string name="units">Units</string>
     <string name="height">Height</string>
     <string name="kilo">kg</string>
@@ -108,6 +108,8 @@
     <string name="allrights">Terence Stenvold 2020</string>
     <string name="email">tstenvold@gmail.com</string>
     <string name="wasRunning">wasRunning</string>
+    <string name="rundel">Run Deleted</string>
+    <string name="undo">Undo</string>
 
 
 </resources>

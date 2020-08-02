@@ -243,7 +243,9 @@ public class SingleRun extends AppCompatActivity {
                 @Override
                 public void onDismissed(Snackbar snackbar, int event) {
                     if (event == DISMISS_EVENT_TIMEOUT) {
+                        File png = new File(getApplicationContext().getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
                         file.delete();
+                        png.delete();
                         finish();
                     }
                 }

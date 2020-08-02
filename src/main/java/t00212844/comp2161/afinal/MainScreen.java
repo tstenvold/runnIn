@@ -3,6 +3,7 @@ package t00212844.comp2161.afinal;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,12 +12,16 @@ import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+/**
+ * This is the main view with the bottom navigation bar that the user interacts with
+ */
 public class MainScreen extends AppCompatActivity {
 
     private Fragment runs;
     private Fragment user;
     private int curItem;
 
+    //the main navigation bar
     BottomNavigationView bottomNavigation;
     final BottomNavigationView.OnNavigationItemSelectedListener navigationItemSelectedListener =
             new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -46,6 +51,11 @@ public class MainScreen extends AppCompatActivity {
                 }
             };
 
+    /**
+     * Creates the view and populates if based on which item in the Bottom Nav Bar is selected
+     *
+     * @param savedInstanceState bundle of saved state variables
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,11 +84,21 @@ public class MainScreen extends AppCompatActivity {
         }
     }
 
+    /**
+     * Generalized switch to a different fragment
+     *
+     * @param fragment the fragment to be swtiched to.
+     */
     public void switchFragment(Fragment fragment) {
         FragmentManager transaction = getSupportFragmentManager();
         transaction.beginTransaction().setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out).replace(R.id.container, fragment).commit();
     }
 
+    /**
+     * Saves the activities state information.
+     *
+     * @param outState bundle to saved state info into
+     */
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -86,8 +106,21 @@ public class MainScreen extends AppCompatActivity {
 
     }
 
+    /**
+     * Close the app if the back button is pressed
+     */
     @Override
     public void onBackPressed() {
         finish();
+    }
+
+    /**
+     * Opens the permissions screen again if the logo in the top right is clicked.
+     *
+     * @param view
+     */
+    public void openPermissionWelcome(View view) {
+        Intent intent = new Intent(getBaseContext(), PermissionsWelcome.class);
+        startActivity(intent);
     }
 }

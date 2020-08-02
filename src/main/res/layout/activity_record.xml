@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     android:background="@drawable/gradient_bg_180"
     android:elevation="0dp"
-    android:keepScreenOn="true"
     tools:context=".Record">
 
     <View
@@ -54,6 +53,7 @@
         android:baselineAlignBottom="true"
         android:clickable="true"
         android:focusable="true"
+        android:hapticFeedbackEnabled="true"
         android:longClickable="true"
         android:textAlignment="center"
         app:fabSize="auto"
@@ -100,6 +100,7 @@
         android:backgroundTint="@android:color/white"
         android:clickable="true"
         android:focusable="true"
+        android:hapticFeedbackEnabled="true"
         android:tint="@android:color/white"
         android:visibility="invisible"
         app:backgroundTint="@color/colorAccent"

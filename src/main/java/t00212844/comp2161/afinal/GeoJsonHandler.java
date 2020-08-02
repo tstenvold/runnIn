@@ -23,23 +23,40 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * The class the handles all of the GeoJson file input and output
+ */
 public class GeoJsonHandler {
 
+
+    /**
+     * Get a list of all the GeoJson files in the app data directory
+     *
+     * @param context the app context
+     * @return an arraylist with all the Files
+     */
     public static ArrayList<File> getJsonFiles(Context context) {
 
         FileFilter ff = file -> file.getName().endsWith(".json");
+        File[] files = context.getFilesDir().listFiles(ff);
+        Arrays.sort(files, Comparator.comparingLong(File::lastModified).reversed());
+        ArrayList<File> filelist = new ArrayList<>(Arrays.asList(Objects.requireNonNull(files)));
 
-        File[] ls = context.getFilesDir().listFiles(ff);
-        ArrayList<File> filelist = new ArrayList<>(Arrays.asList(Objects.requireNonNull(ls)));
-        Collections.reverse(filelist);
         return filelist;
 
     }
 
+    /**
+     * Reads through a files and returns a list of Points
+     *
+     * @param file the File to read
+     * @return an List of Points
+     * @throws IOException if the file cannot be read throws the exception
+     */
     public static List<Point> getFilePoints(File file) throws IOException {
         ArrayList<Location> gps = readJson(file);
         List<Point> points = new ArrayList<>();
@@ -49,6 +66,14 @@ public class GeoJsonHandler {
         return points;
     }
 
+    /**
+     * Write the GPS track to a GeoJson file with the runName given
+     *
+     * @param context  the app context
+     * @param gpsTrack the gps track
+     * @param runName  the name of the run
+     * @throws IOException if the file cannot be read throws the exception
+     */
     public static void writeJson(Context context, ArrayList<Location> gpsTrack, String runName) throws IOException {
 
         NumberFormat format = new DecimalFormat("0.00");
@@ -105,6 +130,14 @@ public class GeoJsonHandler {
         writer.close();
     }
 
+
+    /**
+     * Basic information is stored in the GeoJson properties so the entire file does not need to be read.
+     *
+     * @param file the file to be read
+     * @return return and array list of strings with the values
+     * @throws IOException if the file cannot be read throws the exception
+     */
     public static ArrayList<String> readJsonProperties(File file) throws IOException {
         FileInputStream fis = new FileInputStream(file);
         ArrayList<String> jsonprop = new ArrayList<>();
@@ -178,6 +211,13 @@ public class GeoJsonHandler {
         return jsonprop;
     }
 
+    /**
+     * Reads the entire GeoJson file and returns the GPS track (ArrayList of Locations)
+     *
+     * @param file the file to be read
+     * @return the GPS track
+     * @throws IOException throws the exception if the file cannot be read
+     */
     public static ArrayList<Location> readJson(File file) throws IOException {
         FileInputStream fis = new FileInputStream(file);
         JsonReader reader = new JsonReader(new InputStreamReader(fis, StandardCharsets.UTF_16));

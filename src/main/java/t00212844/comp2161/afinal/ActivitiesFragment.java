@@ -23,8 +23,13 @@ import com.google.android.material.snackbar.Snackbar;
 import java.io.File;
 import java.util.ArrayList;
 
+
+/**
+ * Activities Fragment class for the saved runs
+ */
 public class ActivitiesFragment extends Fragment {
 
+    //The number of items to load at once.
     private static final int NUMITEMS = 5;
     ArrayList<File> files;
     RecyclerView.Adapter sAdapter;
@@ -39,6 +44,14 @@ public class ActivitiesFragment extends Fragment {
         private Drawable icon;
         private ColorDrawable background;
 
+        /**
+         * Enables the swipe to delete feature
+         *
+         * @param recyclerView the recycler view
+         * @param viewHolder   the current view holder
+         * @param target       the view holder targer
+         * @return boolean if being moved
+         */
         @Override
         public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
             icon = ContextCompat.getDrawable(recyclerView.getContext(), R.drawable.delete_sweep_24px);
@@ -47,16 +60,17 @@ public class ActivitiesFragment extends Fragment {
         }
 
         /**
-         * Copied from and Modified from
+         * Copied and Modified for use from
          * https://stackoverflow.com/questions/55672351/recyclerview-swipe-to-delete-still-shows-drawable-with-uncomplete-swipe
          * all rights to the original author
-         * @param c
-         * @param recyclerView
-         * @param viewHolder
-         * @param dX
-         * @param dY
-         * @param actionState
-         * @param isCurrentlyActive
+         *
+         * @param c                 canvas
+         * @param recyclerView      the recyclerview
+         * @param viewHolder        view holder
+         * @param dX                the x pos
+         * @param dY                the y pos
+         * @param actionState       the current state
+         * @param isCurrentlyActive is the view current
          */
         @Override
         public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
@@ -70,15 +84,7 @@ public class ActivitiesFragment extends Fragment {
             int iconTop = itemView.getTop() + (itemView.getHeight() - icon.getIntrinsicHeight() * 2) / 2;
             int iconBottom = iconTop + icon.getIntrinsicHeight() * 2;
 
-            if (dX > 0) { // Swiping to the right
-                int iconLeft = itemView.getLeft() + iconMargin;
-                int iconRight = iconLeft + icon.getIntrinsicWidth() * 2;
-                icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
-
-                background.setBounds(itemView.getLeft(), itemView.getTop(),
-                        itemView.getLeft() + ((int) dX), itemView.getBottom());
-
-            } else if (dX < 0) { // Swiping to the left
+            if (dX < 0) { // Swiping to the left
                 int iconLeft = itemView.getRight() - iconMargin - icon.getIntrinsicWidth() * 2;
                 int iconRight = itemView.getRight() - iconMargin;
                 icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
@@ -95,32 +101,55 @@ public class ActivitiesFragment extends Fragment {
             icon.draw(c);
         }
 
+        /**
+         * Determines how far the item needs to be swiped before it's deleted
+         *
+         * @param viewHolder the current view holder
+         * @return the floating point distance between 0-1
+         */
         @Override
         public float getSwipeThreshold(RecyclerView.ViewHolder viewHolder) {
             return .9f;
         }
 
+        /**
+         * Item has been swiped so handle it appropriately
+         *
+         * @param viewHolder the current view holder
+         * @param swipeDir   int for swipe direction
+         */
         @Override
         public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
             int position = viewHolder.getAdapterPosition();
             ArrayList<File> tempFiles = new ArrayList<>();
+
             tempFiles.addAll(files);
             files.remove(position);
-            Snackbar snackbar = Snackbar.make(viewHolder.itemView, "Run Deleted", Snackbar.LENGTH_LONG);
+            background.setColor(getContext().getColor(android.R.color.transparent));
+            //Show a snackback with a callback to undo the delete or complete the delete
+            Snackbar snackbar = Snackbar.make(viewHolder.itemView, getString(R.string.rundel), Snackbar.LENGTH_LONG);
             View view = snackbar.getView();
             TextView tv = (TextView) view.findViewById(R.id.snackbar_text);
             tv.setTextColor(Color.WHITE);
-            snackbar.setAction("Undo", v -> {
+            snackbar.setAction(getString(R.string.undo), v -> {
                 files.clear();
                 files.addAll(tempFiles);
                 refreshFiles(snackbar.getContext());
             });
             snackbar.addCallback(new Snackbar.Callback() {
 
+                /**
+                 * If the timeout was reached, delete the JSON and PNG files
+                 * @param snackbar the snackbar displayed
+                 * @param event the event that dismissed the snackbar
+                 */
                 @Override
                 public void onDismissed(Snackbar snackbar, int event) {
                     if (event == DISMISS_EVENT_TIMEOUT) {
-                        tempFiles.get(position).delete();
+                        File file = tempFiles.get(position);
+                        File png = new File(getContext().getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
+                        file.delete();
+                        png.delete();
                     }
                     refreshFiles(snackbar.getContext());
                 }
@@ -129,15 +158,35 @@ public class ActivitiesFragment extends Fragment {
         }
     };
 
+    /**
+     * New instance of the fragment
+     *
+     * @param s  not used
+     * @param s1 not used
+     * @return the new fragment
+     */
+    public static Fragment newInstance(String s, String s1) {
+        return new ActivitiesFragment();
+    }
+
+    /**
+     * Create the fragment
+     *
+     * @param savedInstanceState bundle of saved info
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
 
-    public static Fragment newInstance(String s, String s1) {
-        return new ActivitiesFragment();
-    }
-
+    /**
+     * Creates the view and populates it
+     *
+     * @param inflater           layoutinflator
+     * @param container          view group container
+     * @param savedInstanceState bundle of saved state variables
+     * @return the created view
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -163,6 +212,12 @@ public class ActivitiesFragment extends Fragment {
         sRView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             boolean bottom = false;
 
+            /**
+             * If the scroll hits the bottom, add more items
+             *
+             * @param recyclerView the recycler view
+             * @param newState     not used
+             */
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
@@ -171,19 +226,13 @@ public class ActivitiesFragment extends Fragment {
                     bottom = true;
                     count += NUMITEMS;
                     files.clear();
-                    ArrayList<File> newList = GeoJsonHandler.getJsonFiles(context);
-                    files.addAll(newList);
-                    if (newList.size() > count) {
-                        for (int i = 0; i <= count; i++) {
-                            files.add(newList.get(i));
-                        }
-                    }
-                    sAdapter.notifyDataSetChanged();
+                    refreshFiles(context);
                     bottom = false;
                 }
             }
         });
 
+        //Pull down to refresh using swipe to refresh
         final SwipeRefreshLayout refresh = view.findViewById(R.id.pullRefresh);
         refresh.setOnRefreshListener(() -> {
             refreshFiles(context);
@@ -193,6 +242,11 @@ public class ActivitiesFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Refresh the list of JSON run files
+     *
+     * @param context the application context
+     */
     private void refreshFiles(Context context) {
         files.clear();
         ArrayList<File> newList = GeoJsonHandler.getJsonFiles(context);

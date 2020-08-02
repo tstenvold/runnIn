@@ -35,16 +35,31 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * The adapter to display the recorded runs!
+ */
 public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.ViewHolder> {
 
     private static final int DEFAULT_ZOOM = 14;
     private final ArrayList<File> jsonFiles;
     private String bigUnit;
 
+    /**
+     * Constructor for the adapter
+     *
+     * @param sList the list of files (should be sorted by lastmodified descending
+     */
     public ActivitiesAdapter(ArrayList<File> sList) {
         jsonFiles = sList;
     }
 
+    /**
+     * creates the view and inflates it.
+     *
+     * @param parent   the parent view group
+     * @param viewType ignored but required
+     * @return the view holder
+     */
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -52,6 +67,11 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
         return new ViewHolder(view);
     }
 
+    /**
+     * Get the number of runs
+     *
+     * @return the number of runs
+     */
     @Override
     public int getItemCount() {
         return jsonFiles.size();
@@ -99,6 +119,12 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
         };
     }
 
+    /**
+     * Loads all the information for each individual run activity being shown
+     *
+     * @param holder   the current view holder
+     * @param position the item position
+     */
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
 
@@ -187,10 +213,15 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
             } else {
                 png.delete();
             }
-            png.delete();
         }
     }
 
+    /**
+     * Sets the units depending on the preferences set
+     *
+     * @param holder the current view holder
+     * @param units  the unit to be displayed imperial or metric
+     */
     private void setUnits(ViewHolder holder, boolean units) {
         Context context = holder.itemView.getContext();
         String paceUnit;
@@ -207,6 +238,9 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
 
     }
 
+    /**
+     * The view holder class that provides all the variables with their handlers
+     */
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
         public final TextView activityName;

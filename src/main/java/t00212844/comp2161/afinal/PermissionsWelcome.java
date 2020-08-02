@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -27,6 +28,9 @@ public class PermissionsWelcome extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_permissions_welcome);
+        //Forced Portrait Orientation as it doesn't make sense to have a horizontal splash
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
         pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         if (pref.getBoolean(getString(R.string.donotshow), false)) {
             CheckBox donot = findViewById(R.id.doNotShowCheck);

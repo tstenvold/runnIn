@@ -56,7 +56,7 @@ public class Record_Settings extends AppCompatActivity {
     }
 
     public void setScreenPref(boolean value) {
-        if (value) {
+        if (!value) {
             screenText.setText(getString(R.string.sysdefault));
         } else {
             screenText.setText(getString(R.string.alwayson));

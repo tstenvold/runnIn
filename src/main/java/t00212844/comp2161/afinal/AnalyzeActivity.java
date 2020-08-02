@@ -12,12 +12,19 @@ import java.util.concurrent.TimeUnit;
 
 public class AnalyzeActivity {
 
+    //Constants to do conversions
     private static final int JOGMET = 11;
     private static final double KMTOMIL = 1.609344;
     private static final double MTOYD = 1.09361;
     private static final double MPSTOMINKM = 16.6666667;
     private static final double MPSTOKMH = 3.6;
 
+    /**
+     * Returns the distance run in the gps track unit(meters)
+     *
+     * @param gpsTrack the gps track arraylist
+     * @return the distance in meters as double
+     */
     public static double getDistance(ArrayList<Location> gpsTrack) {
         double distance = 0;
         int index = 0;
@@ -33,11 +40,23 @@ public class AnalyzeActivity {
         return distance;
     }
 
+    /**
+     * Returns the distance run in kilometers
+     *
+     * @param gpsTrack the gps track
+     * @return kilometers of gps track as double
+     */
     public static double getDistanceInKm(ArrayList<Location> gpsTrack) {
 
         return getDistance(gpsTrack) / 1000;
     }
 
+    /**
+     * Get the duration of the run in ms
+     *
+     * @param gpsTrack the arraylist of the gps track
+     * @return the duration time in ms
+     */
     public static long getTime(ArrayList<Location> gpsTrack) {
         long start;
         long end;
@@ -49,6 +68,12 @@ public class AnalyzeActivity {
         return 0;
     }
 
+    /**
+     * Finds the rough midpoint of the list of points
+     *
+     * @param points a list of gps coordinates
+     * @return a point which is the rough middle
+     */
     public static Point calculateMidpointMapImage(List<Point> points) {
 
         int midpoint = (points.size() / 2) - 1;
@@ -64,6 +89,12 @@ public class AnalyzeActivity {
         return Point.fromLngLat(finalLong, finalLat);
     }
 
+    /**
+     * Get the last elevation metric from the gps track
+     *
+     * @param gpsTrack the gps track
+     * @return the elevation in meters
+     */
     public static int getLastElevation(ArrayList<Location> gpsTrack) {
         int el = 0;
         if (gpsTrack.size() > 1) {
@@ -73,6 +104,13 @@ public class AnalyzeActivity {
         return el;
     }
 
+    /**
+     * Get the speed between two different locations
+     *
+     * @param loc1 first location
+     * @param loc2 second location
+     * @return the speed in KM/H as a double
+     */
     public static double getSpeed(Location loc1, Location loc2) {
 
         ArrayList<Location> gpsTrack = new ArrayList<>();
@@ -87,6 +125,12 @@ public class AnalyzeActivity {
         return mps * MPSTOKMH;
     }
 
+    /**
+     * Gets the speed in km/h for the last kilometer
+     *
+     * @param gpsTrack the gps track
+     * @return the speed in km/h for the last kilometer in the gpstrack
+     */
     public static double getLastKMSpeed(ArrayList<Location> gpsTrack) {
         //returns speed in meters per second
         float speed = 0;
@@ -95,6 +139,7 @@ public class AnalyzeActivity {
         double time;
         int numOfSpeeds = 0;
 
+        //Traverse the array until you hit 1km calculating the speed
         if (gpsTrack.size() > 0) {
             for (int i = gpsTrack.size() - 1; i > 0; i--) {
                 distance = gpsTrack.get(i).distanceTo(gpsTrack.get(i - 1));
@@ -110,11 +155,23 @@ public class AnalyzeActivity {
         return speed / numOfSpeeds;
     }
 
+    /**
+     * Get the last kilometers pace
+     *
+     * @param gpsTrack the gps track
+     * @return the pace in ms for the last km
+     */
     public static long getLastKMPace(ArrayList<Location> gpsTrack) {
 
         return (long) (MPSTOMINKM / (getFastestSpeed(gpsTrack)) * 60000);
     }
 
+    /**
+     * returns the fastest speed in KM over a 500m distance
+     *
+     * @param gpsTrack
+     * @return the speed in KM/H
+     */
     public static double getFastestSpeed(ArrayList<Location> gpsTrack) {
         float speed = 0;
         double distance;
@@ -143,16 +200,35 @@ public class AnalyzeActivity {
         return fastestSpeed;
     }
 
+    /**
+     * Returns the fastest pace over the entire run
+     *
+     * @param gpsTrack the gps track
+     * @return return the fastest pace in ms
+     */
     public static long getFastestPace(ArrayList<Location> gpsTrack) {
 
         return (long) (MPSTOMINKM / (getFastestSpeed(gpsTrack)) * 60000);
     }
 
+    /**
+     * Returns the overall pace from the entire gps track
+     *
+     * @param gpsTrack the gps track
+     * @return the overall pace in ms
+     */
     public static long getOverallPace(ArrayList<Location> gpsTrack) {
         double duration = (double) getTime(gpsTrack);
         return (long) (duration / (getDistance(gpsTrack) / 1000));
     }
 
+    /**
+     * Returns the elevation gain over the whole gps track
+     *
+     * @param gpsTrack the gps track
+     * @param isMetric should the results be returned in meters or feet
+     * @return the elevation gain in the requested format either Metric or Imperial
+     */
     public static int getElevationGain(ArrayList<Location> gpsTrack, boolean isMetric) {
         int el = 0;
 
@@ -160,7 +236,7 @@ public class AnalyzeActivity {
             for (int i = 0; i < gpsTrack.size() - 2; i++) {
                 Location loc1 = gpsTrack.get(i);
                 Location loc2 = gpsTrack.get(i + 1);
-                if (loc2.getAltitude() > loc1.getAltitude() && loc2.getAltitude() != 0.0 && loc1.getAltitude() != 0.0) {
+                if ((int) loc2.getAltitude() > (int) loc1.getAltitude() && loc2.getAltitude() != 0.0 && loc1.getAltitude() != 0.0) {
                     el += loc2.getAltitude() - loc1.getAltitude();
                 }
             }
@@ -172,6 +248,13 @@ public class AnalyzeActivity {
         return el;
     }
 
+    /**
+     * Gets the lowest elevation from the entire track (ignores 0)
+     *
+     * @param gpsTrack the gps track
+     * @param isMetric is the elevation metric or imperial
+     * @return the lowest elevation in meters or feet.
+     */
     public static int getElevationLow(ArrayList<Location> gpsTrack, boolean isMetric) {
         double el = 0;
 
@@ -193,6 +276,13 @@ public class AnalyzeActivity {
         return (int) el;
     }
 
+    /**
+     * Gets the highest elevation from the entire track (ignores 0)
+     *
+     * @param gpsTrack the gps track
+     * @param isMetric is the elevation metric or imperial
+     * @return the highest elevation in meters or feet.
+     */
     public static int getElevationHigh(ArrayList<Location> gpsTrack, boolean isMetric) {
         double el = 0;
 
@@ -212,6 +302,12 @@ public class AnalyzeActivity {
         return (int) el;
     }
 
+    /**
+     * Returns a time formatted string
+     *
+     * @param gpsTrack the gps track
+     * @return a time formatted string
+     */
     public static String getTimeString(ArrayList<Location> gpsTrack) {
 
         NumberFormat timeFormat = new DecimalFormat("00");
@@ -225,6 +321,12 @@ public class AnalyzeActivity {
         return timeFormat.format(hours) + ":" + timeFormat.format(minutes) + ":" + timeFormat.format(seconds);
     }
 
+    /**
+     * Returns a time formatted string
+     *
+     * @param time the time to be formatted in ms
+     * @return a time formatted string
+     */
     public static String getTimeString(long time) {
 
         NumberFormat timeFormat = new DecimalFormat("00");
@@ -237,6 +339,14 @@ public class AnalyzeActivity {
         return timeFormat.format(hours) + ":" + timeFormat.format(minutes) + ":" + timeFormat.format(seconds);
     }
 
+    /**
+     * Roughly estimats the calories burned during a run based on pace and weight
+     *
+     * @param weight weight of runner in kg
+     * @param time   time running in ms
+     * @param pace   overall pace of run in ms
+     * @return the number of kcal burned
+     */
     public static int getCaloriesBurned(int weight, long time, long pace) {
         //Weight is in kilograms
         long minutes = TimeUnit.MILLISECONDS.toMinutes(time);
