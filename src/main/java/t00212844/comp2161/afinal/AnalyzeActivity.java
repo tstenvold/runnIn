@@ -169,7 +169,7 @@ public class AnalyzeActivity {
     /**
      * returns the fastest speed in KM over a 500m distance
      *
-     * @param gpsTrack
+     * @param gpsTrack the gps track
      * @return the speed in KM/H
      */
     public static double getFastestSpeed(ArrayList<Location> gpsTrack) {

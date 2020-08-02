@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <issue id="IconLocation">
+        <ignore path="src/main/res/drawable/background.png" />
+        <ignore path="src/main/res/drawable/icon.png" />
+        <ignore path="src/main/res/drawable/logo.png" />
+    </issue>
+</lint>

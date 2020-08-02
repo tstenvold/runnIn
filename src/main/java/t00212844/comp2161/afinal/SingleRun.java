@@ -76,18 +76,27 @@ public class SingleRun extends AppCompatActivity {
     private File file;
     private ArrayList<Location> gpsTrack;
     private ArrayList<String> jsonProp;
-    private int lineGraphSpace = 0;
 
     private boolean isMetric = true;
     private String smallUnit;
     private String bigUnit;
     private String paceUnit;
 
+    /**
+     * Create the view, load saved state, set all the variables
+     * <p>
+     * TODO
+     * Clean up and break this down into more methods
+     *
+     * @param savedInstanceState bundle of save state variables
+     */
+    @SuppressWarnings("unchecked")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_single_run);
 
+        //enable toolbar with back button
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
@@ -107,6 +116,7 @@ public class SingleRun extends AppCompatActivity {
         graphel = findViewById(R.id.elgraph);
         graphspeed = findViewById(R.id.speedgraph);
 
+        //Either file path or bundle with file info is provided.
         String filepath = getIntent().getStringExtra(getString(R.string.filepath));
         if (filepath != null) {
             file = new File(getFilesDir(), filepath);
@@ -132,6 +142,7 @@ public class SingleRun extends AppCompatActivity {
 
         }
 
+        //Check json properties was read correctly
         if (jsonProp != null && jsonProp.size() == 5) {
             runName = jsonProp.get(0);
             isMetric = Boolean.parseBoolean(jsonProp.get(4));
@@ -200,6 +211,12 @@ public class SingleRun extends AppCompatActivity {
 
     }
 
+    /**
+     * Handle which toolbar item was selected (Back,Share,Delete)
+     *
+     * @param item the item selected
+     * @return if an item was selected or not
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
@@ -255,6 +272,12 @@ public class SingleRun extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Create the toolbar menu with items
+     *
+     * @param menu the toolbar menu
+     * @return if the creation was successful
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.single_run_menu, menu);
@@ -263,45 +286,54 @@ public class SingleRun extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Get the static map image or load and store from the internet
+     *
+     * @param file the image file
+     */
     public void getMapView(File file) {
         File png = new File(getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
 
         if (!png.exists()) {
-            new Thread(() -> {
-                mapView.post(() -> {
-                    try {
-                        List<Point> points = GeoJsonHandler.getFilePoints(file);
-                        if (points.size() == 0) {
-                            points.add(Point.fromLngLat(-120.364049, 50.670493));
-                        }
-                        LineString lineString = LineString.fromLngLats(points);
-
-                        Point pointMid = AnalyzeActivity.calculateMidpointMapImage(points);
-                        MapboxStaticMap staticImage = MapboxStaticMap.builder()
-                                .accessToken(getString(R.string.access_token))
-                                .styleId(StaticMapCriteria.STREET_STYLE)
-                                //Loads the map center on the middle point of run. Crude but should be ok
-                                //.cameraPoint(pointMid)
-                                .attribution(false)
-                                .cameraAuto(true)
-                                .width(1080) // Image width
-                                .height(720) // Image height
-                                .geoJson(lineString)
-                                .build();
-
-                        String imageUrl = staticImage.url().toString();
-                        Picasso.with(getBaseContext()).load(imageUrl).into(
-                                ActivitiesAdapter.picassoImageTarget(getBaseContext(), png.getAbsolutePath()));
-                        Picasso.with(getBaseContext()).load(imageUrl).into(mapView);
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
+            new Thread(() -> mapView.post(() -> {
+                try {
+                    List<Point> points = GeoJsonHandler.getFilePoints(file);
+                    if (points.size() == 0) {
+                        points.add(Point.fromLngLat(-120.364049, 50.670493));
                     }
-                });
-            }).start();
+                    LineString lineString = LineString.fromLngLats(points);
+
+                    Point pointMid = AnalyzeActivity.calculateMidpointMapImage(points);
+                    MapboxStaticMap staticImage = MapboxStaticMap.builder()
+                            .accessToken(getString(R.string.access_token))
+                            .styleId(StaticMapCriteria.STREET_STYLE)
+                            //Loads the map center on the middle point of run. Crude but should be ok
+                            //.cameraPoint(pointMid)
+                            .attribution(false)
+                            .cameraAuto(true)
+                            .width(1080) // Image width
+                            .height(720) // Image height
+                            .geoJson(lineString)
+                            .build();
+
+                    String imageUrl = staticImage.url().toString();
+                    Picasso.with(getBaseContext()).load(imageUrl).into(
+                            ActivitiesAdapter.picassoImageTarget(getBaseContext(), png.getAbsolutePath()));
+                    Picasso.with(getBaseContext()).load(imageUrl).into(mapView);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            })).start();
         }
     }
 
+    /**
+     * Draw the graphs for speed and elevation
+     *
+     * @param graph the graphview
+     * @param type  the type required
+     */
     private void drawGraph(GraphView graph, int type) {
         LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
         for (Location point : gpsTrack) {
@@ -353,6 +385,12 @@ public class SingleRun extends AppCompatActivity {
         }
     }
 
+    /**
+     * Generates a crude screenshot of the run to be shared
+     *
+     * @param view the current view
+     * @return the bitmap to send
+     */
     private Bitmap getScreenshot(View view) {
 
         View screenView = view.findViewById(R.id.fullview);
@@ -380,9 +418,13 @@ public class SingleRun extends AppCompatActivity {
         return bitmap;
     }
 
+    /**
+     * Set the units according to the user preferences
+     *
+     * @param units boolean true is units are metric false if imperial
+     */
     private void setUnits(boolean units) {
-        boolean unitsMetric = units;
-        if (!unitsMetric) {
+        if (!units) {
             smallUnit = " " + getString(R.string.feet);
             bigUnit = " " + getString(R.string.miles);
             paceUnit = " /" + getString(R.string.miles);

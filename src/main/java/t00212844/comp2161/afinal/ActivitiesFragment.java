@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -53,7 +54,7 @@ public class ActivitiesFragment extends Fragment {
          * @return boolean if being moved
          */
         @Override
-        public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+        public boolean onMove(RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
             icon = ContextCompat.getDrawable(recyclerView.getContext(), R.drawable.delete_sweep_24px);
             background = new ColorDrawable(getResources().getColor(R.color.colorPrimary, null));
             return false;
@@ -73,7 +74,7 @@ public class ActivitiesFragment extends Fragment {
          * @param isCurrentlyActive is the view current
          */
         @Override
-        public void onChildDraw(Canvas c, RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
+        public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
             super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
 
             View itemView = viewHolder.itemView;
@@ -108,7 +109,7 @@ public class ActivitiesFragment extends Fragment {
          * @return the floating point distance between 0-1
          */
         @Override
-        public float getSwipeThreshold(RecyclerView.ViewHolder viewHolder) {
+        public float getSwipeThreshold(@NonNull RecyclerView.ViewHolder viewHolder) {
             return .9f;
         }
 
@@ -118,6 +119,7 @@ public class ActivitiesFragment extends Fragment {
          * @param viewHolder the current view holder
          * @param swipeDir   int for swipe direction
          */
+        @SuppressWarnings("CollectionAddAllCanBeReplacedWithConstructor")
         @Override
         public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
             int position = viewHolder.getAdapterPosition();
@@ -125,7 +127,7 @@ public class ActivitiesFragment extends Fragment {
 
             tempFiles.addAll(files);
             files.remove(position);
-            background.setColor(getContext().getColor(android.R.color.transparent));
+            background.setColor(requireContext().getColor(android.R.color.transparent));
             //Show a snackback with a callback to undo the delete or complete the delete
             Snackbar snackbar = Snackbar.make(viewHolder.itemView, getString(R.string.rundel), Snackbar.LENGTH_LONG);
             View view = snackbar.getView();
@@ -147,7 +149,7 @@ public class ActivitiesFragment extends Fragment {
                 public void onDismissed(Snackbar snackbar, int event) {
                     if (event == DISMISS_EVENT_TIMEOUT) {
                         File file = tempFiles.get(position);
-                        File png = new File(getContext().getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
+                        File png = new File(requireContext().getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
                         file.delete();
                         png.delete();
                     }
@@ -161,11 +163,9 @@ public class ActivitiesFragment extends Fragment {
     /**
      * New instance of the fragment
      *
-     * @param s  not used
-     * @param s1 not used
      * @return the new fragment
      */
-    public static Fragment newInstance(String s, String s1) {
+    public static Fragment newInstance() {
         return new ActivitiesFragment();
     }
 
@@ -219,10 +219,9 @@ public class ActivitiesFragment extends Fragment {
              * @param newState     not used
              */
             @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
-                super.onScrollStateChanged(recyclerView, newState);
-
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 if (!recyclerView.canScrollVertically(1) && !bottom) {
+                    super.onScrollStateChanged(recyclerView, newState);
                     bottom = true;
                     count += NUMITEMS;
                     files.clear();

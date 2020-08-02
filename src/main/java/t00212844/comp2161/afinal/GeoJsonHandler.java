@@ -43,10 +43,10 @@ public class GeoJsonHandler {
 
         FileFilter ff = file -> file.getName().endsWith(".json");
         File[] files = context.getFilesDir().listFiles(ff);
+        assert files != null;
         Arrays.sort(files, Comparator.comparingLong(File::lastModified).reversed());
-        ArrayList<File> filelist = new ArrayList<>(Arrays.asList(Objects.requireNonNull(files)));
 
-        return filelist;
+        return new ArrayList<>(Arrays.asList(Objects.requireNonNull(files)));
 
     }
 

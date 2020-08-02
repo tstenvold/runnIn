@@ -67,8 +67,8 @@ public class MainScreen extends AppCompatActivity {
         if (savedInstanceState != null) {
             curItem = savedInstanceState.getInt(getString(R.string.curitem), 0);
         }
-        runs = ActivitiesFragment.newInstance(null, null);
-        user = UserInfo.newInstance(null, null);
+        runs = ActivitiesFragment.newInstance();
+        user = UserInfo.newInstance();
         bottomNavigation.setSelectedItemId(curItem);
 
         switch (curItem) {
@@ -100,7 +100,7 @@ public class MainScreen extends AppCompatActivity {
      * @param outState bundle to saved state info into
      */
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(getString(R.string.curitem), curItem);
 
@@ -117,7 +117,6 @@ public class MainScreen extends AppCompatActivity {
     /**
      * Opens the permissions screen again if the logo in the top right is clicked.
      *
-     * @param view
      */
     public void openPermissionWelcome(View view) {
         Intent intent = new Intent(getBaseContext(), PermissionsWelcome.class);

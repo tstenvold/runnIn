@@ -12,16 +12,23 @@ import androidx.appcompat.widget.Toolbar;
 
 import java.util.Objects;
 
+/**
+ * Record settings.
+ */
 public class Record_Settings extends AppCompatActivity {
 
     TextView voiceText;
     TextView gpsText;
     TextView screenText;
-
     int voice;
     int gps;
     boolean screen;
 
+    /**
+     * Creates the view with the proper layout
+     *
+     * @param savedInstanceState bundle of saved state variables
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +54,12 @@ public class Record_Settings extends AppCompatActivity {
 
     }
 
+    /**
+     * If the option selected is the back button end the activity
+     *
+     * @param item the item selected
+     * @return if the item was selected is the correct one
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
@@ -55,6 +68,11 @@ public class Record_Settings extends AppCompatActivity {
         return false;
     }
 
+    /**
+     * Sets screen pref.
+     *
+     * @param value the value to be set
+     */
     public void setScreenPref(boolean value) {
         if (!value) {
             screenText.setText(getString(R.string.sysdefault));
@@ -63,6 +81,11 @@ public class Record_Settings extends AppCompatActivity {
         }
     }
 
+    /**
+     * Change voice command setting
+     *
+     * @param value the value to be set
+     */
     public void changeVoiceCmd(int value) {
         switch (value) {
             case 0:
@@ -78,6 +101,11 @@ public class Record_Settings extends AppCompatActivity {
         }
     }
 
+    /**
+     * Change the GPS accuracy.
+     *
+     * @param value the value to be set
+     */
     public void changeGPSAcc(int value) {
         switch (value) {
             case 0:
@@ -95,6 +123,9 @@ public class Record_Settings extends AppCompatActivity {
         }
     }
 
+    /**
+     * Sets screen preference. Either always on or sys default
+     */
     public void setScreenPref(View view) {
 
         screen = !screen;
@@ -102,6 +133,9 @@ public class Record_Settings extends AppCompatActivity {
         setSettings(getString(R.string.scron), screen);
     }
 
+    /**
+     * Change voice cmd button clicked
+     */
     public void changeVoiceCmd(View view) {
 
         if (++voice > 2) {
@@ -111,6 +145,9 @@ public class Record_Settings extends AppCompatActivity {
         setSettings(getString(R.string.voicecmd), voice);
     }
 
+    /**
+     * Change GPS accuracy button clicked
+     */
     public void changeGPSAcc(View view) {
         if (++gps > 3) {
             gps = 0;
@@ -119,6 +156,12 @@ public class Record_Settings extends AppCompatActivity {
         setSettings(getString(R.string.gpsacc), gps);
     }
 
+    /**
+     * Generalized to sets the settings from the shared preferences
+     *
+     * @param key   the key
+     * @param value the value
+     */
     public void setSettings(String key, Object value) {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         SharedPreferences.Editor editor = pref.edit();

@@ -78,6 +78,9 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineJoin;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
 
 
+/**
+ * This is the most complicated class that performs the recording of an activity
+ */
 public class Record extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback, LocationListener, PermissionsListener {
 
     private static final int PERMISSION_FINE_LOCATION = 0;
@@ -115,6 +118,11 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         // Required empty public constructor
     }
 
+    /**
+     * Creates the view and populates the data with saved state info or default
+     *
+     * @param savedInstanceState bundle of saved state variables
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -146,6 +154,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         }
         setUnits();
 
+        //Sets the tts language to Canadian if possible
         tts = new TextToSpeech(getApplicationContext(), status -> {
             if (status != TextToSpeech.ERROR) {
                 tts.setLanguage(Locale.CANADA);
@@ -169,6 +178,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
             }
         });
 
+        //What to do if the play button is clicked
         play.setOnClickListener(view -> {
             if (!isRunning && tvEnd.getVisibility() == View.VISIBLE) {
                 endRun(view);
@@ -179,6 +189,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
             }
         });
 
+        //When resume is clicked
         resume.setOnClickListener(view -> {
             if (!isRunning) {
                 startRecording();
@@ -186,6 +197,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         });
 
         //Extremely hacky way to do this but it works for now
+        //Loads the saved state bundle variables
         //TODO clean up this code into proper methods
         if (savedInstanceState != null) {
             pausedTime = savedInstanceState.getLong(getString(R.string.time), 0);
@@ -218,6 +230,11 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         initMap(savedInstanceState);
     }
 
+    /**
+     * Initializes the MapBox SDK map
+     *
+     * @param savedInstanceState bundle of saved state info
+     */
     private void initMap(Bundle savedInstanceState) {
         Mapbox.getInstance(getBaseContext(), getString(R.string.access_token));
 
@@ -253,6 +270,11 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         }
     }
 
+    /**
+     * Initializes the Map Style
+     *
+     * @param loadedMapStyle the style of the map
+     */
     private void initLayers(@NonNull Style loadedMapStyle) {
         LineLayer routeLayer = new LineLayer(getString(R.string.runGeoJsonLayerId), getString(R.string.runGeoJsonId));
 
@@ -265,6 +287,9 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         loadedMapStyle.addLayer(routeLayer);
     }
 
+    /**
+     * Starts the recording of a run
+     */
     private void startRecording() {
 
         isRunning = true;
@@ -287,6 +312,9 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
 
     }
 
+    /**
+     * Pauses the recording of a run
+     */
     private void pauseRecording() {
 
         isRunning = false;
@@ -306,9 +334,14 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         }
     }
 
+    /**
+     * Enable the permission and set the location component
+     *
+     * @param loadedMapStyle the map style
+     */
     @SuppressWarnings({"MissingPermission"})
     private void enableLocationComponent(@NonNull Style loadedMapStyle) {
-// Check if permissions are enabled and if not request
+        // Check if permissions are enabled and if not request
         if (PermissionsManager.areLocationPermissionsGranted(getBaseContext())) {
             LocationComponent locationComponent = mapboxMap.getLocationComponent();
             locationComponent.activateLocationComponent(
@@ -322,6 +355,9 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         }
     }
 
+    /**
+     * Permission check is handled elsewhere. Request the location based on GPS setting
+     */
     @SuppressLint("MissingPermission") //permission check handled
     private void requestLocation() {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -367,6 +403,9 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         }
     }
 
+    /**
+     * Request the location permission from the user
+     */
     private void requestLocationPermission() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
             Snackbar.make(mLayout, R.string.request_location, Snackbar.LENGTH_INDEFINITE).setAction(R.string.ok, view -> ActivityCompat.requestPermissions((Activity) getBaseContext(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_FINE_LOCATION)).show();
@@ -377,16 +416,24 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         }
     }
 
+    /**
+     * Updates everytime the location is changed, adds a point to the gps track
+     *
+     * @param location the new location
+     */
     @Override
     public void onLocationChanged(Location location) {
+        Location lastKnownLocation;
 
         if (isRunning && mapboxMap != null) {
             gpsTrack.add(location);
             mapTrack.add(Point.fromLngLat(location.getLongitude(), location.getLatitude()));
-            mapboxMap.getLocationComponent().forceLocationUpdate(location);
-            Location lastKnownLocation = mapboxMap.getLocationComponent().getLastKnownLocation();
-
-            //TODO fix this so it only does it after the view is reloaded
+            if (mapboxMap.getLocationComponent().isLocationComponentActivated()) {
+                mapboxMap.getLocationComponent().forceLocationUpdate(location);
+                lastKnownLocation = mapboxMap.getLocationComponent().getLastKnownLocation();
+            } else {
+                return;
+            }
             assert lastKnownLocation != null;
             CameraPosition position = new CameraPosition.Builder()
                     .target(new LatLng(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()))
@@ -402,21 +449,44 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         }
     }
 
+    /**
+     * Required but not used
+     *
+     * @param provider not used
+     * @param status   not used
+     * @param extras   not used
+     */
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
 
     }
 
+    /**
+     * Required but not used
+     *
+     * @param provider not used
+     */
     @Override
     public void onProviderEnabled(String provider) {
 
     }
 
+    /**
+     * Required but not used
+     *
+     * @param provider not used
+     */
     @Override
     public void onProviderDisabled(String provider) {
 
     }
 
+    /**
+     * Does all the calculations for the current run in the background.
+     * Refreshes every 5 seconds
+     *
+     * @param duration ms that the program should run
+     */
     private void runBackgroundCalculations(int duration) {
         timer = new CountDownTimer(duration, 5000) {
 
@@ -446,9 +516,9 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
 
                     tvPace.setText(paceString);
                     tvDistance.setText(distanceText);
+                    //TODO get weight from shared pref
                     tvCalories.setText(format.format(AnalyzeActivity.getCaloriesBurned(70, AnalyzeActivity.getTime(gpsTrack), pace)));
                     tvElevation.setText(elText);
-
                     if ((int) distance > curUnitDistance && voicecmd > 0) {
                         curUnitDistance = (int) distance;
                         String speakText = getString(R.string.currentdistance) + " " + curUnitDistance + " " + unitString;
@@ -472,16 +542,31 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         }.start();
     }
 
+    /**
+     * Required but not used
+     *
+     * @param permissionsToExplain not used
+     */
     @Override
     public void onExplanationNeeded(List<String> permissionsToExplain) {
 
     }
 
+    /**
+     * Required but not used
+     *
+     * @param granted not used
+     */
     @Override
     public void onPermissionResult(boolean granted) {
 
     }
 
+    /**
+     * Build save state bundle.
+     *
+     * @return the bundle
+     */
     public Bundle buildSaveStateBundle() {
         Bundle state = new Bundle();
         if (isRunning) {
@@ -496,12 +581,23 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         return state;
     }
 
+    /**
+     * Saves the state bundle upon state change
+     *
+     * @param outState the bundle of state variables
+     */
     @Override
-    public void onSaveInstanceState(Bundle outState) {
+    public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putAll(buildSaveStateBundle());
     }
 
+    /**
+     * End the recording of the run, get username and send to GeoJsonhandler to be saved as a
+     * Geojson file.
+     *
+     * @param view the current view
+     */
     private void endRun(View view) {
         final String[] userRunName = new String[1];
         String runName = generateRunName();
@@ -509,9 +605,10 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
             speakTTSCommands(3);
         }
         if (AnalyzeActivity.getDistanceInKm(gpsTrack) < 0.1 || gpsTrack.size() < 2) {
-            Toast.makeText(getBaseContext(), "Run is not long enough to save", Toast.LENGTH_LONG).show();
+            Toast.makeText(getBaseContext(), getString(R.string.runshort), Toast.LENGTH_LONG).show();
             finish();
         } else {
+            //Get name for run
             AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
             builder.setTitle(getString(R.string.enterrunname));
             final EditText input = new EditText(view.getContext());
@@ -544,13 +641,18 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                 finish();
             });
             builder.setNegativeButton(R.string.cancel, (dialog, which) -> {
-                Toast.makeText(getBaseContext(), "Run not saved", Toast.LENGTH_LONG).show();
+                Toast.makeText(getBaseContext(), getString(R.string.runnotsaved), Toast.LENGTH_LONG).show();
                 finish();
             });
             builder.show();
         }
     }
 
+    /**
+     * Generates a simple name for the run based on time of day
+     *
+     * @return the string with the run name.
+     */
     private String generateRunName() {
         String runName = "";
 
@@ -569,11 +671,21 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         return runName;
     }
 
+    /**
+     * Open the record settings.
+     *
+     * @param view the view
+     */
     public void openSettings(View view) {
         Intent intent = new Intent(view.getContext(), Record_Settings.class);
         view.getContext().startActivity(intent);
     }
 
+    /**
+     * Says the command based on the button pressed
+     *
+     * @param position which button was pressed.
+     */
     private void speakTTSCommands(int position) {
         String speakText = "";
         switch (position) {
@@ -590,11 +702,17 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                 speakText = getString(R.string.ending);
                 break;
         }
+        //Say the text
         if (tts != null) {
             tts.speak(speakText, TextToSpeech.QUEUE_FLUSH, null, "utterance-id");
         }
     }
 
+    /**
+     * Gets battery percentage.
+     *
+     * @return the battery percentage as a float
+     */
     public float getBatteryPercentage() {
 
         IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
@@ -607,11 +725,17 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         return level * 100 / (float) scale;
     }
 
+    /**
+     * gets the voice command settings from the shared pref
+     */
     private void setTTSPref() {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         voicecmd = pref.getInt(getString(R.string.voicecmd), 0);
     }
 
+    /**
+     * Sets the units accordingly to the user preferences
+     */
     private void setUnits() {
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         unitsMetric = pref.getBoolean(getString(R.string.units), true);
@@ -629,6 +753,9 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
 
     }
 
+    /**
+     * Handles back button press while recording to prevent accidentally exiting the activity
+     */
     @Override
     public void onBackPressed() {
         if (isRunning || resume.getVisibility() == View.VISIBLE) {
@@ -638,6 +765,9 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         }
     }
 
+    /**
+     * If the run is put into the background, create a notification for it
+     */
     @Override
     public void onPause() {
         super.onPause();
@@ -646,6 +776,9 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         }
     }
 
+    /**
+     * On resuming, delete the notification if it exists and load the preferences
+     */
     @Override
     public void onResume() {
         super.onResume();
@@ -660,6 +793,10 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
         }
     }
 
+    /**
+     * Create notification when app is put into the background.
+     * When clicked, bring record activity back to the user.
+     */
     public void createNotification() {
         Intent intent = new Intent(this, Record.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -669,7 +806,7 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
                 .setSmallIcon(R.drawable.icon)
                 .setContentTitle(getString(R.string.app_name))
                 .setNotificationSilent()
-                .setContentText("Currently recording your run")
+                .setContentText(getString(R.string.curNot))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
@@ -679,6 +816,9 @@ public class Record extends AppCompatActivity implements ActivityCompat.OnReques
 
     }
 
+    /**
+     * Create the notification channel for the applications notifications to be displayed.
+     */
     private void createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library

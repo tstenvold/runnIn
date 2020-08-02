@@ -6,7 +6,8 @@
     android:layout_height="wrap_content"
     android:background="@color/colorAccent"
     android:minHeight="?attr/actionBarSize"
-    tools:context=".WelcomeFragment">
+    tools:context=".WelcomeFragment"
+    tools:ignore="Overdraw">
 
     <TextView
         android:id="@+id/welcometvGreeting"

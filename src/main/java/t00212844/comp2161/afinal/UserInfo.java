@@ -40,7 +40,7 @@ public class UserInfo extends Fragment {
 
     ImageView avatar;
     TextView weightUnit;
-    TextView heightUnit;
+    //TextView heightUnit;
     EditText name;
     EditText weight;
     EditText height;
@@ -52,7 +52,7 @@ public class UserInfo extends Fragment {
         // Required empty public constructor
     }
 
-    public static UserInfo newInstance(String param1, String param2) {
+    public static UserInfo newInstance() {
         return new UserInfo();
     }
 

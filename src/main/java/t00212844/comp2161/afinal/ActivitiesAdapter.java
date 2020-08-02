@@ -38,9 +38,9 @@ import java.util.Locale;
 /**
  * The adapter to display the recorded runs!
  */
+@SuppressWarnings("UnusedAssignment")
 public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.ViewHolder> {
 
-    private static final int DEFAULT_ZOOM = 14;
     private final ArrayList<File> jsonFiles;
     private String bigUnit;
 
@@ -142,26 +142,23 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
             e.printStackTrace();
         }
 
-
         if (jsonProp.size() == 5) {
             holder.activityName.setText(jsonProp.get(0));
             setUnits(holder, Boolean.parseBoolean(jsonProp.get(4)));
-            Long time = Long.parseLong(jsonProp.get(2).replace(".0", ""));
+            long time = Long.parseLong(jsonProp.get(2).replace(".0", ""));
             holder.time.setText(AnalyzeActivity.getTimeString(time));
             String distanceText = decimalFormat.format(Double.parseDouble(jsonProp.get(1)) / 1000) + bigUnit;
             holder.distance.setText(distanceText);
         }
 
-        final Runnable r = new Runnable() {
-            public void run() {
-                ArrayList<Location> points = new ArrayList<>();
-                try {
-                    points = GeoJsonHandler.readJson(file);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                holder.date.setText(DateFormat.format("dd/MM/yyyy HH:mm", points.get(0).getTime()));
+        final Runnable r = () -> {
+            ArrayList<Location> points = new ArrayList<>();
+            try {
+                points = GeoJsonHandler.readJson(file);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+            holder.date.setText(DateFormat.format("dd/MM/yyyy HH:mm", points.get(0).getTime()));
         };
         r.run();
 

@@ -107,9 +107,11 @@
     <string name="defaultUser">runnIn-User</string>
     <string name="allrights">Terence Stenvold 2020</string>
     <string name="email">tstenvold@gmail.com</string>
-    <string name="wasRunning">wasRunning</string>
     <string name="rundel">Run Deleted</string>
     <string name="undo">Undo</string>
+    <string name="runshort">Run is not long enough to save</string>
+    <string name="runnotsaved">Run not saved</string>
+    <string name="curNot">Currently Recording Your Run</string>
 
 
 </resources>

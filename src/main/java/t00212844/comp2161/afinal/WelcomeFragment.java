@@ -6,7 +6,6 @@ import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
@@ -15,24 +14,23 @@ import java.util.Calendar;
 
 public class WelcomeFragment extends Fragment {
 
-    private final double KELVIN = 273.15;
+    //private final double KELVIN = 273.15;
     TextView greeting;
-    TextView status;
-    ImageView icon;
+    //TextView status;
+    //ImageView icon;
 
     public WelcomeFragment() {
         // Required empty public constructor
     }
 
-    public static WelcomeFragment newInstance(String param1, String param2) {
-        return new WelcomeFragment();
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
+    /**
+     * Creates the view and populates it with info
+     *
+     * @param inflater           layout inflator
+     * @param container          the view group container
+     * @param savedInstanceState the bundle of saved state variables
+     * @return the fragment view
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -50,6 +48,11 @@ public class WelcomeFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Generate a simple greeting to the user depending on the time of the day
+     *
+     * @return the greeting string
+     */
     private String generateGreeting() {
         String greeting = "";
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getContext());
@@ -72,6 +75,9 @@ public class WelcomeFragment extends Fragment {
         return greeting;
     }
 
+    /*
+      To be used in future versions, displays weather and icon
+     */
     /*private void setWeather() {
         String apiKey = "20b4dd37224fd777c9480e6392f45636";
         String baseUrl = "https://api.openweathermap.org/data/2.5/weather?";
