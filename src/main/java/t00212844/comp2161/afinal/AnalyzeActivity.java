@@ -199,8 +199,9 @@ public class AnalyzeActivity {
                 speed += distance / (time / 1000);
                 numOfSpeeds++;
                 if (totalDistance > 500) {
-                    if (speed / numOfSpeeds > fastestSpeed || fastestSpeed == 0) {
-                        fastestSpeed = speed / numOfSpeeds;
+                    double topSpeed = speed / numOfSpeeds;
+                    if (topSpeed > fastestSpeed || fastestSpeed == 0) {
+                        fastestSpeed = topSpeed;
                     }
                     totalDistance = 0;
                     speed = 0;
@@ -219,7 +220,10 @@ public class AnalyzeActivity {
      */
     public static long getFastestPace(ArrayList<Location> gpsTrack) {
 
-        return (long) (MPSTOMINKM / (getFastestSpeed(gpsTrack)) * 60000);
+        long fastestPace = getOverallPace(gpsTrack);
+        long fastestSpeed = (long) (MPSTOMINKM / (getFastestSpeed(gpsTrack)) * 60000);
+
+        return Math.min(fastestPace, fastestSpeed);
     }
 
     /**

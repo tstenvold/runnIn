@@ -137,50 +137,51 @@ public class ActivitiesAdapter extends RecyclerView.Adapter<ActivitiesAdapter.Vi
 
         Context context = holder.itemView.getContext();
         File file = jsonFiles.get(position);
-        ArrayList<String> jsonProp = new ArrayList<>();
         SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyy HH:mm", Locale.CANADA);
         NumberFormat decimalFormat = new DecimalFormat("0.00");
         File png = new File(context.getFilesDir(), file.getName().substring(0, file.getName().length() - 5) + ".png");
         File ava = new File(context.getFilesDir() + "/" + context.getString(R.string.avatarpath));
 
-        try {
-            jsonProp = GeoJsonHandler.readJsonProperties(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        new Thread(() -> holder.date.post(() -> {
+            ArrayList<Location> point = new ArrayList<>();
+            ArrayList<String> jsonProp = new ArrayList<>();
 
-        if (jsonProp.size() == 5) {
-            holder.activityName.setText(jsonProp.get(0));
-            setUnits(holder, Boolean.parseBoolean(jsonProp.get(4)));
-            long time = Long.parseLong(jsonProp.get(2).replace(".0", ""));
-            holder.time.setText(AnalyzeActivity.getTimeString(time));
-            String distanceText = decimalFormat.format(Double.parseDouble(jsonProp.get(1)) / 1000) + bigUnit;
-            holder.distance.setText(distanceText);
-        }
-
-        final Runnable r = () -> {
-            ArrayList<Location> points = new ArrayList<>();
             try {
-                points = GeoJsonHandler.readJson(file);
+                jsonProp = GeoJsonHandler.readJsonProperties(file);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            holder.date.setText(DateFormat.format("dd/MM/yyyy HH:mm", points.get(0).getTime()));
-        };
-        r.run();
 
-        if (ava.exists()) {
-            Uri avatarpath = Uri.parse(ava.getAbsolutePath());
-            holder.avatar.setImageURI(avatarpath);
-        } else {
-            holder.avatar.setImageDrawable(context.getDrawable(R.drawable.account_circle_24px));
-        }
+            if (jsonProp.size() == 5) {
+                holder.activityName.setText(jsonProp.get(0));
+                setUnits(holder, Boolean.parseBoolean(jsonProp.get(4)));
+                long time = Long.parseLong(jsonProp.get(2).replace(".0", ""));
+                holder.time.setText(AnalyzeActivity.getTimeString(time));
+                String distanceText = decimalFormat.format(Double.parseDouble(jsonProp.get(1)) / 1000) + bigUnit;
+                holder.distance.setText(distanceText);
+            }
 
-        holder.itemView.setOnClickListener(view -> {
-            Intent intent = new Intent(view.getContext(), SingleRun.class);
-            intent.putExtra(view.getContext().getString(R.string.filepath), file.getName());
-            context.startActivity(intent);
-        });
+            try {
+                point = GeoJsonHandler.readJson(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            holder.date.setText(DateFormat.format("dd/MM/yyyy HH:mm", point.get(0).getTime()));
+
+            if (ava.exists()) {
+                Uri avatarpath = Uri.parse(ava.getAbsolutePath());
+                holder.avatar.setImageURI(avatarpath);
+            } else {
+                holder.avatar.setImageDrawable(context.getDrawable(R.drawable.account_circle_24px));
+            }
+
+            holder.itemView.setOnClickListener(view -> {
+                Intent intent = new Intent(view.getContext(), SingleRun.class);
+                intent.putExtra(view.getContext().getString(R.string.filepath), file.getName());
+                context.startActivity(intent);
+            });
+
+        })).start();
 
         if (!png.exists()) {
             new Thread(() -> holder.mapView.post(() -> {

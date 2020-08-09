@@ -144,7 +144,8 @@ public class UserInfo extends Fragment {
                     if (bmpImage == null) {
                         Toast.makeText(getContext(), getString(R.string.invalidImage), Toast.LENGTH_SHORT).show();
                     } else {
-                        bmpImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                        bmpImage = Bitmap.createScaledBitmap(bmpImage, 240, 240, false);
+                        bmpImage.compress(Bitmap.CompressFormat.PNG, 75, baos);
                     }
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
