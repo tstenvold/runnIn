@@ -120,6 +120,7 @@
     <string name="runshort">Run is not long enough to save</string>
     <string name="runnotsaved">Run not saved</string>
     <string name="curNot">Currently Recording Your Run</string>
+    <string name="recordRun">No runs recorded, once recorded it will show here.</string>
 
 
 </resources>

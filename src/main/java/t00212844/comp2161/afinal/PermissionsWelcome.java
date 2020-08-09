@@ -120,7 +120,6 @@ public class PermissionsWelcome extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_FINE_LOCATION);
         }
-        updateCheck();
     }
 
     /**
@@ -147,7 +146,6 @@ public class PermissionsWelcome extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0);
         }
-        updateCheck();
     }
 
     /**
@@ -174,7 +172,6 @@ public class PermissionsWelcome extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.INTERNET}, 0);
         }
-        updateCheck();
     }
 
 

@@ -44,22 +44,57 @@ import java.util.Objects;
 
 import static android.app.Activity.RESULT_OK;
 
+/**
+ * The type User info.
+ */
 public class UserInfo extends Fragment {
 
+    /**
+     * The Avatar.
+     */
     ImageView avatar;
+    /**
+     * The Weight unit.
+     */
     TextView weightUnit;
-    //TextView heightUnit;
+    /**
+     * The Name.
+     */
+//TextView heightUnit;
     EditText name;
+    /**
+     * The Weight.
+     */
     EditText weight;
+    /**
+     * The Height.
+     */
     EditText height;
+    /**
+     * The Dob.
+     */
     EditText dob;
+    /**
+     * The Labeled switch.
+     */
     LabeledSwitch labeledSwitch;
+    /**
+     * The Avatarpath.
+     */
     Uri avatarpath;
 
+    /**
+     * Instantiates a new User info.
+     */
     public UserInfo() {
         // Required empty public constructor
     }
 
+    /**
+     * New instance user info.
+     *
+     * @return the user info
+     */
     public static UserInfo newInstance() {
         return new UserInfo();
     }

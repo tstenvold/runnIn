@@ -20,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -210,6 +211,11 @@ public class ActivitiesFragment extends Fragment {
 
         count = NUMITEMS;
         files = GeoJsonHandler.getJsonFiles(context);
+
+        if (files.size() == 0) {
+            Toast.makeText(getContext(), getString(R.string.recordRun), Toast.LENGTH_LONG).show();
+
+        }
         if (files.size() > count) {
             files = new ArrayList<>(files.subList(0, count));
         }
